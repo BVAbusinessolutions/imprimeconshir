@@ -1,11 +1,14 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { PrivateRoute, AdminRoute } from './ProtectedRoute';
-import { lazy, Suspense } from 'react';
+import { lazy } from 'react';
+import Layout from '../components/layout/Layout';
 
 // Lazy imports para code-splitting (carga bajo demanda)
 const Home        = lazy(() => import('../pages/Home'));
 const Catalog     = lazy(() => import('../pages/Catalog'));
 const ProductDetail = lazy(() => import('../pages/ProductDetail'));
+const Preview     = lazy(() => import('../pages/Preview'));
+const Quote       = lazy(() => import('../pages/Quote'));
 const Cart        = lazy(() => import('../pages/Cart'));
 const Checkout    = lazy(() => import('../pages/Checkout'));
 const Login       = lazy(() => import('../pages/auth/Login'));
@@ -18,21 +21,18 @@ const AdminProducts  = lazy(() => import('../pages/admin/Products'));
 const AdminOrders    = lazy(() => import('../pages/admin/Orders'));
 const NotFound    = lazy(() => import('../pages/NotFound'));
 
-// Spinner de carga global
-const GlobalLoader = () => (
-  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-    <div className="spinner" />
-  </div>
-);
-
 const AppRouter = () => (
   <BrowserRouter>
-    <Suspense fallback={<GlobalLoader />}>
-      <Routes>
+    <Routes>
+      {/* Layout envuelve el <Outlet> en Suspense, así la navegación queda fija al cargar cada página */}
+      <Route element={<Layout />}>
         {/* Públicas */}
         <Route path="/" element={<Home />} />
         <Route path="/catalogo" element={<Catalog />} />
+        <Route path="/catalogo/:categoria" element={<Catalog />} />
         <Route path="/producto/:id" element={<ProductDetail />} />
+        <Route path="/previsualizar" element={<Preview />} />
+        <Route path="/cotizar" element={<Quote />} />
         <Route path="/carrito" element={<Cart />} />
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Register />} />
@@ -54,8 +54,8 @@ const AppRouter = () => (
 
         {/* 404 */}
         <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Suspense>
+      </Route>
+    </Routes>
   </BrowserRouter>
 );
 

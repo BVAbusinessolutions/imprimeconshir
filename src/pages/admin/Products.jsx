@@ -1,3 +1,5 @@
-﻿import React from 'react';
-const Products = () => <div style={{color:'white',padding:'4rem',textAlign:'center'}}><h1>Admin - Productos</h1></div>;
-export default Products;
+import ComingSoon from '../../components/ui/ComingSoon';
+
+const AdminProducts = () => <ComingSoon title="Productos" phase="Fase 3 · Administración" />;
+
+export default AdminProducts;

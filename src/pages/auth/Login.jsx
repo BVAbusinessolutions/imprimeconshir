@@ -1,3 +1,5 @@
-﻿import React from 'react';
-const Login = () => <div style={{color:'white',padding:'4rem',textAlign:'center'}}><h1>Iniciar Sesión</h1></div>;
+import ComingSoon from '../../components/ui/ComingSoon';
+
+const Login = () => <ComingSoon title="Iniciar sesión" phase="Próximamente" />;
+
 export default Login;

@@ -22,26 +22,18 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center',
-          justifyContent: 'center', height: '100vh', gap: '1rem',
-          background: '#0a0a0f', color: '#f8f9fa', fontFamily: 'Inter, sans-serif'
-        }}>
-          <h1 style={{ fontSize: '3rem' }}>⚠️ Algo salió mal</h1>
-          <p style={{ color: '#a0aab2' }}>Recarga la página o contacta soporte.</p>
+        <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-paper px-4 text-center text-ink">
+          <h1 className="text-4xl font-extrabold">Algo salió mal.</h1>
+          <p className="text-muted">Recarga la página o escríbenos si el problema continúa.</p>
           <button
+            type="button"
             onClick={() => window.location.reload()}
-            style={{
-              padding: '0.75rem 2rem', background: '#00ffaa', color: '#0a0a0f',
-              border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '700'
-            }}
+            className="mt-2 h-11 rounded-full bg-accent px-6 font-semibold text-white hover:bg-accent-hover"
           >
             Recargar
           </button>
           {import.meta.env.DEV && (
-            <pre style={{ color: '#ff6b6b', fontSize: '0.75rem', maxWidth: '600px', overflow: 'auto' }}>
-              {this.state.error?.toString()}
-            </pre>
+            <pre className="mt-4 max-w-xl overflow-auto text-xs text-accent">{this.state.error?.toString()}</pre>
           )}
         </div>
       );

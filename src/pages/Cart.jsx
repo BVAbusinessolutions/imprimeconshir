@@ -1,3 +1,5 @@
-﻿import React from 'react';
-const Cart = () => <div style={{color:'white',padding:'4rem',textAlign:'center'}}><h1>Carrito</h1></div>;
+import ComingSoon from '../components/ui/ComingSoon';
+
+const Cart = () => <ComingSoon title="Carrito" phase="Próximamente" />;
+
 export default Cart;

@@ -1,3 +1,5 @@
-﻿import React from 'react';
-const Checkout = () => <div style={{color:'white',padding:'4rem',textAlign:'center'}}><h1>Checkout</h1></div>;
+import ComingSoon from '../components/ui/ComingSoon';
+
+const Checkout = () => <ComingSoon title="Checkout" phase="Próximamente" />;
+
 export default Checkout;

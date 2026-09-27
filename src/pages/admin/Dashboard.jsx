@@ -1,3 +1,5 @@
-﻿import React from 'react';
-const Dashboard = () => <div style={{color:'white',padding:'4rem',textAlign:'center'}}><h1>Admin Dashboard</h1></div>;
+import ComingSoon from '../../components/ui/ComingSoon';
+
+const Dashboard = () => <ComingSoon title="Panel administrativo" phase="Fase 3 · Administración" />;
+
 export default Dashboard;

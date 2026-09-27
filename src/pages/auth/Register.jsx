@@ -1,3 +1,5 @@
-﻿import React from 'react';
-const Register = () => <div style={{color:'white',padding:'4rem',textAlign:'center'}}><h1>Registro</h1></div>;
+import ComingSoon from '../../components/ui/ComingSoon';
+
+const Register = () => <ComingSoon title="Crear cuenta" phase="Próximamente" />;
+
 export default Register;

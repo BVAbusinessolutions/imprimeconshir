@@ -16,11 +16,14 @@ import { db } from '../firebase/config';
 
 // ─── Productos ────────────────────────────────────────────────
 
+// Se ordena en el cliente para no depender de un índice compuesto (category + createdAt) en Firestore
 export const getProducts = async (category = null) => {
   let q = collection(db, 'products');
-  if (category) q = query(q, where('category', '==', category), orderBy('createdAt', 'desc'));
+  if (category) q = query(q, where('category', '==', category));
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
 };
 
 export const getProductById = async (id) => {

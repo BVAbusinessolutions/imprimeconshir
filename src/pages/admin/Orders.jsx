@@ -1,3 +1,5 @@
-﻿import React from 'react';
-const AdminOrders = () => <div style={{color:'white',padding:'4rem',textAlign:'center'}}><h1>Admin - Pedidos</h1></div>;
+import ComingSoon from '../../components/ui/ComingSoon';
+
+const AdminOrders = () => <ComingSoon title="Pedidos" phase="Fase 3 · Administración" />;
+
 export default AdminOrders;
