@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Variables de entorno (solo se versiona la plantilla)
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +27,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local env files
+.env.local
+.env
