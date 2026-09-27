@@ -5,96 +5,227 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "imprimeconshir",
-        "responseMode": "lastNode",
-        "options": {}
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
       },
-      "id": "22ff6b7e-9273-45a8-a5c9-95e54d5883d6",
+      "id": "c2393bb7-06ed-48fd-9bbe-9200d221ebe8",
       "name": "Webhook Principal",
       "type": "n8n-nodes-base.webhook",
-      "typeVersion": 1,
+      "typeVersion": 2,
       "position": [
         240,
-        300
+        360
       ],
       "webhookId": "imprimeconshir-webhook-1234"
     },
     {
       "parameters": {
-        "dataType": "string",
-        "value1": "={{ $json.body.action }}",
         "rules": {
-          "rules": [
+          "values": [
             {
-              "value2": "cotizar",
-              "outputKey": "Cotizacion"
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "379407ec-098a-4422-9612-c03feb9d1462",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "chat",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "chat"
             },
             {
-              "value2": "chat",
-              "outputKey": "Chat IA"
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "82b1e7a3-d704-4bc3-93ab-a94a578a7580",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "cotizar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "cotizar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "10deeef1-6fa6-4b7a-940b-04be110dee43",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "cita",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "cita"
             }
           ]
         },
-        "fallbackOutput": 0
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "desconocida"
+        }
       },
-      "id": "673f40d5-5386-455b-b997-6a18d103328f",
-      "name": "Switch Router",
+      "id": "467cbf41-6f92-44d1-ab59-52eaf7ac2612",
+      "name": "Enrutar por acción",
       "type": "n8n-nodes-base.switch",
-      "typeVersion": 1,
+      "typeVersion": 3.2,
       "position": [
         480,
-        300
+        360
       ]
     },
     {
       "parameters": {
-        "keepOnlySet": true,
-        "values": {
-          "string": [
-            {
-              "name": "status",
-              "value": "success"
-            },
-            {
-              "name": "message",
-              "value": "¡Cotización recibida en n8n!"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "// CHAT (temporal, por reglas). Reemplázalo por un nodo \"AI Agent\" con el tono de Shirlene\n// y memoria por sessionId; la respuesta debe conservar este mismo formato.\n\n// Horarios sugeridos: próximos 3 días a las 10:00 y 16:00 (hora del servidor n8n)\nconst pad = (n) => String(n).padStart(2, '0');\nconst day = (offset) => {\n  const d = new Date();\n  d.setDate(d.getDate() + offset);\n  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());\n};\nconst suggestedSlots = () => [1, 2, 3].flatMap((o) => [day(o) + 'T10:00', day(o) + 'T16:00']);\nconst shortId = (prefix) => prefix + '-' + Math.random().toString(36).slice(2, 8).toUpperCase();\n\nconst body = $input.first().json.body || {};\nconst text = String(body.message || '').toLowerCase();\n\nlet response;\n\nif (/(rotul|veh[ií]culo|camioneta|carro|auto|flotilla|medir|medidas)/.test(text)) {\n  response = {\n    reply: '¡Qué buen proyecto! Para rotular un vehículo necesitamos tomar medidas exactas. Te agendo una visita con uno de nuestros ninjas y te llevamos propuesta y precio final.',\n    intent: 'appointment',\n    appointment: { reason: 'Medición para rotulación vehicular', suggestedSlots: suggestedSlots() },\n  };\n} else if (/(cotiz|precio|cu[aá]nto|costo|lona|vinil|tarjeta)/.test(text)) {\n  response = {\n    reply: 'Claro, te cotizo al instante. Dime medidas y cantidad, o usa el formulario de cotización para adjuntar tu diseño.',\n    intent: 'quote',\n    suggestions: ['Lona de 2 × 1 m', 'Necesito 10 piezas', 'Ir al formulario'],\n  };\n} else {\n  response = {\n    reply: '¡Hola! Soy del equipo de IMPRIME con SHIR. Cuéntame qué necesitas imprimir y te ayudo a cotizarlo al instante.',\n    intent: 'general',\n    suggestions: ['Cotizar una lona', 'Rotular mi camioneta', 'Material para un evento'],\n  };\n}\n\nreturn [{ json: response }];\n"
       },
-      "id": "893d56b8-07de-49c0-9d10-ef54c8636f32",
-      "name": "Respuesta Cotización",
-      "type": "n8n-nodes-base.set",
+      "id": "4be3a7e9-8f76-4bb8-b4cc-eec9c49befb3",
+      "name": "Chat",
+      "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        780,
-        200
+        760,
+        160
       ]
     },
     {
       "parameters": {
-        "keepOnlySet": true,
-        "values": {
-          "string": [
-            {
-              "name": "status",
-              "value": "success"
-            },
-            {
-              "name": "reply",
-              "value": "Hola, soy el asistente en n8n. ¿En qué te ayudo?"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "// PRE-COTIZACIÓN. Ajusta PRICE_TABLE a tu lista de precios real\n// (o reemplázala por una consulta a tu base de datos / hoja de proveedores).\n\n// Horarios sugeridos: próximos 3 días a las 10:00 y 16:00 (hora del servidor n8n)\nconst pad = (n) => String(n).padStart(2, '0');\nconst day = (offset) => {\n  const d = new Date();\n  d.setDate(d.getDate() + offset);\n  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());\n};\nconst suggestedSlots = () => [1, 2, 3].flatMap((o) => [day(o) + 'T10:00', day(o) + 'T16:00']);\nconst shortId = (prefix) => prefix + '-' + Math.random().toString(36).slice(2, 8).toUpperCase();\n\nconst PRICE_TABLE = {\n  lonas: { unit: 'm2', price: 180 },\n  vinil: { unit: 'm2', price: 260 },\n  'rotulacion-vehicular': { unit: 'm2', price: 650 },\n  'rotulos-corporeos': { unit: 'm2', price: 2800 },\n  cajas: { unit: 'pieza', price: 14 },\n  papeleria: { unit: 'pieza', price: 3.5 },\n  'rollos-termicos': { unit: 'pieza', price: 22 },\n  stands: { unit: 'pieza', price: 8500 },\n  'material-pop': { unit: 'pieza', price: 450 },\n  activaciones: { unit: 'pieza', price: 6000 },\n  'senalizacion-eventos': { unit: 'm2', price: 320 },\n  'articulos-promocionales': { unit: 'pieza', price: 38 },\n  textiles: { unit: 'pieza', price: 145 },\n  'kits-corporativos': { unit: 'pieza', price: 520 },\n};\n// Trabajos que necesitan visita técnica antes de dar precio\nconst NEEDS_VISIT = ['rotulacion-vehicular', 'rotulos-corporeos', 'stands'];\nconst DESIGN_FEE = 350;\nconst TAX_RATE = 0.16;\n\nconst body = $input.first().json.body || {};\nconst quoteId = shortId('COT');\n\nif (NEEDS_VISIT.includes(body.subcategory)) {\n  return [{ json: {\n    quoteId,\n    status: 'requires_visit',\n    message: 'Este trabajo necesita medidas en sitio. Agenda una visita y te enviamos el precio final.',\n    appointment: { reason: 'Visita técnica para medición', suggestedSlots: suggestedSlots() },\n  } }];\n}\n\nconst rule = PRICE_TABLE[body.subcategory] || { unit: 'pieza', price: 100 };\nconst factor = body.unit === 'cm' ? 0.01 : 1;\nconst area = Math.max((Number(body.width) || 0) * factor * (Number(body.height) || 0) * factor, 0.5);\nconst qty = Math.max(parseInt(body.quantity, 10) || 1, 1);\nconst base = Math.round(rule.unit === 'm2' ? area * qty * rule.price : qty * rule.price);\nconst subtotal = base + DESIGN_FEE;\nconst tax = Math.round(subtotal * TAX_RATE);\n\nconst validUntil = new Date();\nvalidUntil.setDate(validUntil.getDate() + 7);\n\nreturn [{ json: {\n  quoteId,\n  status: 'preliminary',\n  message: 'Pre-cotización lista. Un asesor te confirma el precio final en minutos.',\n  items: [\n    { concept: rule.unit === 'm2' ? 'Impresión ' + area.toFixed(2) + ' m² × ' + qty : 'Producción ' + qty + ' pzas', amount: base },\n    { concept: 'Ajuste de diseño y preprensa', amount: DESIGN_FEE },\n  ],\n  subtotal,\n  tax,\n  total: subtotal + tax,\n  currency: 'MXN',\n  validUntil: validUntil.toISOString().slice(0, 10),\n} }];\n"
       },
-      "id": "4d168516-e416-46c5-9271-9de0fdb5fdbb",
-      "name": "Respuesta Chat",
-      "type": "n8n-nodes-base.set",
+      "id": "1e66afcc-f424-46b3-ad4a-72a70a992d82",
+      "name": "Pre-cotización",
+      "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        780,
-        400
+        760,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// CITA TÉCNICA. Aquí conecta después: Google Calendar (crear evento),\n// y en paralelo un aviso a los ninjas (Gmail / Telegram / WhatsApp Business).\n\n// Horarios sugeridos: próximos 3 días a las 10:00 y 16:00 (hora del servidor n8n)\nconst pad = (n) => String(n).padStart(2, '0');\nconst day = (offset) => {\n  const d = new Date();\n  d.setDate(d.getDate() + offset);\n  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());\n};\nconst suggestedSlots = () => [1, 2, 3].flatMap((o) => [day(o) + 'T10:00', day(o) + 'T16:00']);\nconst shortId = (prefix) => prefix + '-' + Math.random().toString(36).slice(2, 8).toUpperCase();\n\nconst body = $input.first().json.body || {};\n\nif (!body.slot || !body.address || !body.contact || !body.contact.phone) {\n  return [{ json: { status: 'pending', message: 'Nos faltan datos de la cita. Un asesor te contactará en minutos.' } }];\n}\n\nreturn [{ json: {\n  appointmentId: shortId('CITA'),\n  status: 'confirmed',\n  message: 'Cita agendada. Te llegará la confirmación y uno de nuestros ninjas te contactará.',\n} }];\n"
+      },
+      "id": "0404775b-f960-4496-9fc4-4cd85dcca64b",
+      "name": "Cita técnica",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "52c95b05-de34-4372-a6e6-a53a1b57c7f6",
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1060,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"error\": \"Acción no válida. Usa chat, cotizar o cita.\"}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "a61e190b-69ae-495d-a640-b74e9622da74",
+      "name": "Acción no válida",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        760,
+        760
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## IMPRIME con SHIR · Recepción web\nLa web envía POST con `action` = `chat` | `cotizar` | `cita`.\nContrato completo: `docs/n8n-webhooks.md`.\n\n**Antes de publicar:** activa el workflow, cambia CORS del webhook a tu dominio y verifica el header `Authorization` (ID token de Firebase).",
+        "width": 420,
+        "height": 220
+      },
+      "id": "e8090a2b-aa66-4176-bb8f-3a1a97d714b8",
+      "name": "Nota 160-60",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        160,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Próximo paso: IA\nSustituye el nodo **Chat** por **AI Agent** (Claude u OpenAI) con el tono de Shirlene en el system prompt y memoria por `sessionId`. Debe devolver `reply`, `intent` y opcionalmente `quote`, `appointment`, `suggestions`.",
+        "width": 360,
+        "height": 200
+      },
+      "id": "6e7a6fd3-f89c-465e-92ba-5614be4ca9a8",
+      "name": "Nota 960-60",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        960,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Avisar a los ninjas\nDespués de **Cita técnica**, agrega en paralelo Google Calendar y Gmail/Telegram con dirección, horario y enlace a Google Maps.",
+        "width": 360,
+        "height": 160
+      },
+      "id": "f5164052-da2c-40a8-b435-0b2843d2189b",
+      "name": "Nota 960-560",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        960,
+        560
       ]
     }
   ],
@@ -103,25 +234,72 @@
       "main": [
         [
           {
-            "node": "Switch Router",
+            "node": "Enrutar por acción",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Switch Router": {
+    "Enrutar por acción": {
       "main": [
         [
           {
-            "node": "Respuesta Cotización",
+            "node": "Chat",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Respuesta Chat",
+            "node": "Pre-cotización",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cita técnica",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Acción no válida",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pre-cotización": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cita técnica": {
+      "main": [
+        [
+          {
+            "node": "Responder",
             "type": "main",
             "index": 0
           }

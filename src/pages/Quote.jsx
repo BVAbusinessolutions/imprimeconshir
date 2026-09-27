@@ -31,7 +31,7 @@ const MAX_FILE_MB = 25; // igual que storage.rules
 
 const STEPS = [
   ['Pre-cotización', 'Al instante, con tus medidas.'],
-  ['Confirmación', 'Precio final en menos de 2 horas.'],
+  ['Confirmación', 'Precio final en minutos.'],
   ['Producción', 'Imprimimos y entregamos.'],
 ];
 
@@ -168,13 +168,13 @@ const Quote = () => {
   return (
     <div className="mx-auto max-w-7xl px-4 pt-12 sm:px-6 sm:pt-16 lg:px-8">
       <Helmet>
-        <title>Cotiza en minutos | IMPRIME con SHIR</title>
-        <meta name="description" content="Pre-cotización inmediata y precio final en menos de 2 horas." />
+        <title>Cotiza al instante | IMPRIME con SHIR</title>
+        <meta name="description" content="Pre-cotización al instante y precio final en minutos." />
       </Helmet>
 
       <Reveal className="mb-12">
         <p className="text-xs font-semibold tracking-[0.2em] text-muted uppercase">Cotización</p>
-        <h1 className="mt-3 text-[clamp(2.25rem,5vw,4rem)] leading-none font-black">Cotiza en minutos.</h1>
+        <h1 className="mt-3 text-[clamp(2.25rem,5vw,4rem)] leading-none font-black">Cotiza al instante.</h1>
         {product && <p className="mt-4 text-muted">Para: {product.name}</p>}
       </Reveal>
 

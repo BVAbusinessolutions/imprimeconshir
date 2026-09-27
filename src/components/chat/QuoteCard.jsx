@@ -36,8 +36,8 @@ const QuoteCard = ({ quote, compact = false }) => {
       </div>
 
       <p className="mt-3 text-xs text-muted">
-        Precio preliminar{quote.validUntil && `, válido hasta el ${quote.validUntil}`}. Te confirmamos el precio final en
-        menos de 2 horas.
+        Precio preliminar{quote.validUntil && `, válido hasta el ${quote.validUntil}`}. Un asesor te confirma el precio final
+        en minutos.
       </p>
     </div>
   );

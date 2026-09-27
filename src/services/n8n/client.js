@@ -1,17 +1,17 @@
 import axios from 'axios';
 import { auth } from '../../firebase/config';
 
-const BASE_URL = (import.meta.env.VITE_N8N_WEBHOOK_URL || '').replace(/\/+$/, '');
+// URL completa del webhook único ("Webhook Principal" de n8n-workflow-base.json)
+const WEBHOOK_URL = (import.meta.env.VITE_N8N_WEBHOOK_URL || '').replace(/\/+$/, '');
 
 /** Sin URL configurada (o con VITE_N8N_MOCK=true) se usan respuestas simuladas. */
-export const IS_N8N_MOCK = !BASE_URL || import.meta.env.VITE_N8N_MOCK === 'true';
+export const IS_N8N_MOCK = !WEBHOOK_URL || import.meta.env.VITE_N8N_MOCK === 'true';
 
 /**
- * Cliente HTTP para los webhooks de n8n.
+ * Cliente HTTP para el webhook de n8n.
  * Timeout amplio: las respuestas del chat pasan por un modelo de IA.
  */
 const n8nClient = axios.create({
-  baseURL: BASE_URL,
   timeout: 45000,
   headers: { 'Content-Type': 'application/json' },
 });
@@ -29,18 +29,19 @@ const isRetryable = (error) =>
   !error.response || error.code === 'ECONNABORTED' || error.response.status >= 500;
 
 /**
- * POST a un webhook de n8n con un reintento ante errores de red o 5xx.
- * @param {string} path - Ruta del webhook, p. ej. '/chat'.
- * @param {object} payload - Cuerpo JSON.
+ * POST al webhook único de n8n con un reintento ante errores de red o 5xx.
+ * El workflow enruta por el campo `action` del cuerpo.
+ * @param {'chat'|'cotizar'|'cita'} action - Acción que ejecuta el workflow.
+ * @param {object} payload - Datos de la acción.
  */
-export const postToN8n = async (path, payload, { retries = 1 } = {}) => {
+export const postToN8n = async (action, payload, { retries = 1 } = {}) => {
   try {
-    const { data } = await n8nClient.post(path, payload);
+    const { data } = await n8nClient.post(WEBHOOK_URL, { action, ...payload });
     return data;
   } catch (error) {
     if (retries > 0 && isRetryable(error)) {
       await new Promise((r) => setTimeout(r, 1200));
-      return postToN8n(path, payload, { retries: retries - 1 });
+      return postToN8n(action, payload, { retries: retries - 1 });
     }
     throw error;
   }

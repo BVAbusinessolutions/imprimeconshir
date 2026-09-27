@@ -107,7 +107,7 @@ export const mockQuote = async (payload) => {
   return {
     quoteId,
     status: 'preliminary',
-    message: 'Pre-cotización lista. Te confirmamos el precio final en menos de 2 horas.',
+    message: 'Pre-cotización lista. Un asesor te confirma el precio final en minutos.',
     ...buildQuote(payload),
   };
 };

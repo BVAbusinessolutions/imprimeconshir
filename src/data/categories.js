@@ -1,9 +1,11 @@
+import { placeholderImage } from './placeholderImages';
+
 /**
  * Categorías principales del catálogo (navegación superior).
  * `slug` es el valor que se guarda en `products.category` / `products.subcategory` en Firestore.
- * `cover` admite una URL de imagen; mientras no haya fotos se muestra un placeholder.
+ * `cover` (categoría) e `image` (subcategoría) admiten una URL; si faltan se usa una imagen temporal.
  */
-export const CATEGORIES = [
+const RAW_CATEGORIES = [
   {
     slug: 'gran-formato',
     name: 'Gran Formato',
@@ -55,5 +57,12 @@ export const CATEGORIES = [
     ],
   },
 ];
+
+// Mientras no haya fotos reales, cada categoría y subcategoría usa una imagen temporal
+export const CATEGORIES = RAW_CATEGORIES.map((c) => ({
+  ...c,
+  cover: c.cover ?? placeholderImage(c.slug),
+  subcategories: c.subcategories.map((s) => ({ ...s, image: s.image ?? placeholderImage(s.slug, 800, 1000) })),
+}));
 
 export const getCategory = (slug) => CATEGORIES.find((c) => c.slug === slug) ?? null;

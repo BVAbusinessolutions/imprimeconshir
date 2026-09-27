@@ -8,6 +8,7 @@ import { useProduct } from '../hooks/useProducts';
 import { getCategory } from '../data/categories';
 import useCartStore from '../store/cartStore';
 import { formatCurrency } from '../utils/helpers';
+import { placeholderImage } from '../data/placeholderImages';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -41,7 +42,7 @@ const ProductDetail = () => {
 
   const category = getCategory(product.category);
   const subcategory = category?.subcategories.find((s) => s.slug === product.subcategory);
-  const images = product.images?.length ? product.images : [null];
+  const images = product.images?.length ? product.images : [placeholderImage(product.id)];
 
   const handleAddToCart = () => {
     addItem({ id: product.id, name: product.name, price: product.price, image: product.images?.[0] ?? null });

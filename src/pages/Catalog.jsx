@@ -10,7 +10,7 @@ import NotFound from './NotFound';
 const SubcategoryTile = ({ category, sub, tone }) => (
   <Link to={`/catalogo/${category.slug}?sub=${sub.slug}`} className="group block">
     <div className="overflow-hidden rounded-2xl">
-      <ProjectImage label={sub.name} tone={tone} className="aspect-[4/5] w-full" />
+      <ProjectImage src={sub.image} alt={sub.name} label={sub.name} tone={tone} className="aspect-[4/5] w-full" />
     </div>
     <p className="mt-3 font-semibold">{sub.name}</p>
   </Link>

@@ -7,20 +7,28 @@ const tones = [
 
 /**
  * Imagen de proyecto (protagonista del estilo Fotobook).
- * Mientras no haya foto real muestra un placeholder neutro con la etiqueta.
+ * Sin `src` muestra un placeholder neutro con la etiqueta; con `showLabel` la etiqueta va sobre la foto.
  * Se anima al hacer hover si algún ancestro tiene la clase `group`.
  */
-const ProjectImage = ({ src, alt = '', label, tone = 0, className = '' }) => {
+const ProjectImage = ({ src, alt = '', label, showLabel = false, tone = 0, className = '' }) => {
   if (src) {
     return (
-      <div className={`overflow-hidden bg-line ${className}`}>
+      <div className={`relative overflow-hidden bg-line ${className}`}>
         <img
           src={src}
-          alt={alt}
+          alt={alt || label || ''}
           loading="lazy"
           decoding="async"
           className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
         />
+        {showLabel && label && (
+          <>
+            <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/55 to-transparent" />
+            <span className="font-display absolute bottom-4 left-4 text-xs font-semibold tracking-[0.18em] text-white uppercase">
+              {label}
+            </span>
+          </>
+        )}
       </div>
     );
   }

@@ -1,29 +1,36 @@
-# Webhooks de n8n
+# Webhook de n8n
 
-La web se comunica con n8n mediante tres webhooks `POST` con cuerpo JSON. La URL base se define en `VITE_N8N_WEBHOOK_URL` (p. ej. `https://n8n.tudominio.com/webhook`); si está vacía, la web usa respuestas simuladas (`src/services/n8n/mock.js`) con este mismo contrato.
+La web se comunica con **un solo webhook** `POST` (el nodo *Webhook Principal* de `n8n-workflow-base.json`). Su URL completa va en `VITE_N8N_WEBHOOK_URL` (p. ej. `https://n8n.tudominio.com/webhook/imprimeconshir`). Cada petición lleva un campo `action` y el workflow la enruta con el nodo *Enrutar por acción*. Si la URL está vacía o `VITE_N8N_MOCK=true`, la web usa respuestas simuladas (`src/services/n8n/mock.js`) con este mismo contrato.
 
-| Ruta | Uso | Origen en la web |
+| `action` | Uso | Origen en la web |
 | --- | --- | --- |
-| `/chat` | Mensaje del chat web → respuesta de la IA | `ChatWidget` |
-| `/cotizacion` | Pre-cotización inmediata desde el formulario | `/cotizar` |
-| `/citas` | Agendar visita técnica y avisar a los ninjas | Tarjeta de cita (chat y `/cotizar`) |
+| `chat` | Mensaje del chat web → respuesta de la IA | `ChatWidget` |
+| `cotizar` | Pre-cotización inmediata desde el formulario | `/cotizar` |
+| `cita` | Agendar visita técnica y avisar a los ninjas | Tarjeta de cita (chat y `/cotizar`) |
+
+Una `action` desconocida responde `400`.
+
+## Cómo actualizar el workflow
+
+`n8n-workflow-base.json` es la fuente de verdad: los cambios a las automatizaciones se hacen ahí y se importan en n8n (*Workflows → Import from File*, sobre el workflow existente o como uno nuevo, desactivando el anterior). Tras importar, **activa** el workflow y revisa las credenciales de los nodos que las usen.
 
 ## Seguridad
 
 - Si el visitante inició sesión, cada petición lleva `Authorization: Bearer <Firebase ID token>`. **n8n debe verificar el token** (firma con las llaves públicas de Google, `aud` = ID del proyecto de Firebase) antes de confiar en `uid` o `email` del cuerpo. Los campos `uid`/`user` del cuerpo son solo informativos.
 - El chat y la cotización también funcionan sin sesión: aplica límite de peticiones por IP o por `sessionId` en n8n (o un proxy delante) para evitar abuso del modelo de IA.
-- Configura CORS del webhook para aceptar solo el dominio de la web.
+- En el nodo *Webhook Principal*, opción *Allowed Origins (CORS)*: hoy está en `*`; cámbiala a tu dominio (y `http://localhost:5173` para desarrollo) al publicar.
 - Las respuestas del bot se muestran como **texto plano**; no envíes HTML.
 - Los montos de una pre-cotización los calcula n8n; la web nunca envía precios.
 
 ---
 
-## `POST /chat`
+## `action: "chat"`
 
 ### Petición
 
 ```json
 {
+  "action": "chat",
   "sessionId": "5f0c…-uuid",
   "message": "Quiero rotular mi camioneta",
   "history": [
@@ -64,7 +71,7 @@ La web se comunica con n8n mediante tres webhooks `POST` con cuerpo JSON. La URL
 
 ### Flujo sugerido en n8n
 
-1. **Webhook** (POST, *Respond: Using 'Respond to Webhook' node*).
+1. **Webhook Principal** → **Enrutar por acción** (salida `chat`).
 2. **Verificar token** si viene `Authorization` (nodo Code o JWT).
 3. **AI Agent** (OpenAI o Anthropic Claude) con:
    - *System prompt* con el vocabulario, estilo de ventas y tono de Shirlene. Vive **solo en n8n**; la web no lo conoce.
@@ -78,12 +85,13 @@ Responde en menos de ~30 s (la web espera 45 s y reintenta una vez ante errores 
 
 ---
 
-## `POST /cotizacion`
+## `action: "cotizar"`
 
 ### Petición
 
 ```json
 {
+  "action": "cotizar",
   "category": "gran-formato",
   "subcategory": "lonas",
   "width": 3,
@@ -112,7 +120,7 @@ Responde en menos de ~30 s (la web espera 45 s y reintenta una vez ante errores 
 {
   "quoteId": "COT-8F21A0",
   "status": "preliminary",
-  "message": "Pre-cotización lista. Te confirmamos el precio final en menos de 2 horas.",
+  "message": "Pre-cotización lista. Un asesor te confirma el precio final en minutos.",
   "items": [
     { "concept": "Impresión 4.50 m² × 2", "amount": 1620 },
     { "concept": "Ajuste de diseño y preprensa", "amount": 350 }
@@ -138,22 +146,23 @@ Responde en menos de ~30 s (la web espera 45 s y reintenta una vez ante errores 
 
 ### Flujo sugerido en n8n
 
-1. Webhook → validar campos.
+1. **Enrutar por acción** (salida `cotizar`) → validar campos.
 2. Buscar precio base y margen de la `subcategory` (lista de precios propia o de proveedores).
 3. Si la subcategoría requiere medición (rotulación vehicular, rótulos corpóreos, stands) → `requires_visit`.
 4. Guardar la solicitud (Firestore/Postgres) con estado `pendiente_confirmacion` y hora de entrada.
 5. Notificar al equipo (correo/Telegram/Slack) para confirmar el precio final.
-6. **Meta de servicio**: un nodo *Wait* o un flujo programado revisa las cotizaciones sin confirmar a los 90 minutos y escala la alerta para cumplir el límite de 2 horas.
+6. **Meta de servicio**: un nodo *Wait* o un flujo programado revisa las cotizaciones sin confirmar a los 10 minutos y escala la alerta, para que el precio final llegue en minutos.
 7. Responder al webhook.
 
 ---
 
-## `POST /citas`
+## `action: "cita"`
 
 ### Petición
 
 ```json
 {
+  "action": "cita",
   "slot": "2026-09-28T10:00",
   "address": "Av. Siempre Viva 742, Col. Centro",
   "contact": { "name": "Ana", "email": "ana@correo.com", "phone": "5512345678" },
@@ -178,7 +187,7 @@ Responde en menos de ~30 s (la web espera 45 s y reintenta una vez ante errores 
 
 ### Flujo sugerido en n8n
 
-1. Webhook → verificar que el horario siga libre.
+1. **Enrutar por acción** (salida `cita`) → verificar que el horario siga libre.
 2. Crear el evento (Google Calendar del equipo técnico) y guardar la cita.
 3. **Notificar a los ninjas** con dirección, horario, contacto y enlace a Google Maps.
 4. Enviar confirmación al cliente por correo.

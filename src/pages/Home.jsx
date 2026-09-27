@@ -7,14 +7,16 @@ import BeforeAfterSlider from '../components/media/BeforeAfterSlider';
 import VanGraphic from '../components/media/VanGraphic';
 import LogoMockupPreview from '../components/mockup/LogoMockupPreview';
 import { CATEGORIES } from '../data/categories';
+import { placeholderImage } from '../data/placeholderImages';
 
-// Mosaico Fotobook: las imágenes de proyectos son las protagonistas
+// Mosaico Fotobook: las imágenes de proyectos son las protagonistas.
+// Reemplaza `src` por fotos reales de trabajos cuando estén disponibles.
 const MOSAIC = [
-  { label: 'Rotulación vehicular', span: 'col-span-2 row-span-2' },
-  { label: 'Stands', span: '' },
-  { label: 'Lonas', span: '' },
-  { label: 'Cajas', span: '' },
-  { label: 'Promocionales', span: '' },
+  { label: 'Rotulación vehicular', span: 'col-span-2 row-span-2', src: placeholderImage('mosaico-rotulacion', 1400, 1000) },
+  { label: 'Stands', span: '', src: placeholderImage('mosaico-stands', 800, 600) },
+  { label: 'Lonas', span: '', src: placeholderImage('mosaico-lonas', 800, 600) },
+  { label: 'Cajas', span: '', src: placeholderImage('mosaico-cajas', 800, 600) },
+  { label: 'Promocionales', span: '', src: placeholderImage('mosaico-promocionales', 800, 600) },
 ];
 
 const VanScene = ({ wrapped }) => (
@@ -41,7 +43,7 @@ const Home = () => (
       <title>IMPRIME con SHIR | Impresión y publicidad en todos los formatos</title>
       <meta
         name="description"
-        content="Gran formato, litografía, eventos y promocionales. Cotiza en minutos y recibe respuesta en menos de 2 horas."
+        content="Gran formato, litografía, eventos y promocionales. Cotiza por chat y recibe tu pre-cotización al instante."
       />
     </Helmet>
 
@@ -55,11 +57,11 @@ const Home = () => (
         </h1>
         <div className="flex flex-col items-start gap-4 lg:items-end lg:pb-3">
           <p className="max-w-xs text-muted lg:text-right">
-            Del rollo térmico a la valla. Respuesta en menos de 2 horas.
+            Del rollo térmico a la valla. Pre-cotización al instante.
           </p>
           <div className="flex items-center gap-5">
             <Button to="/cotizar" size="lg">
-              Cotiza en minutos
+              Cotiza al instante
             </Button>
             <Link to="/catalogo" className="text-sm font-semibold whitespace-nowrap underline-offset-4 hover:underline">
               Ver catálogo
@@ -71,7 +73,7 @@ const Home = () => (
       <Reveal delay={0.1} className="mt-12 grid auto-rows-[140px] grid-cols-2 gap-3 sm:auto-rows-[200px] md:grid-cols-4 md:gap-4">
         {MOSAIC.map((item, i) => (
           <div key={item.label} className={`group overflow-hidden rounded-2xl ${item.span}`}>
-            <ProjectImage label={item.label} tone={i} className="h-full w-full" />
+            <ProjectImage src={item.src} label={item.label} showLabel tone={i} className="h-full w-full" />
           </div>
         ))}
       </Reveal>
@@ -142,7 +144,7 @@ const Home = () => (
     <section className="mx-auto mt-28 max-w-7xl px-4 sm:px-6 lg:px-8">
       <Reveal className="flex flex-col items-start justify-between gap-8 rounded-3xl bg-ink px-8 py-14 text-white sm:px-14 md:flex-row md:items-center">
         <h2 className="max-w-xl text-3xl font-extrabold sm:text-4xl">
-          Cuéntanos tu proyecto. Te respondemos en menos de 2 horas.
+          Cuéntanos tu proyecto. Te cotizamos al instante.
         </h2>
         <Button to="/cotizar" size="lg">
           Solicitar cotización
