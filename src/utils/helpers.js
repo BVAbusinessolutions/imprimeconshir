@@ -35,3 +35,12 @@ export const slugify = (str) =>
 
 /** Fecha local en formato 'yyyy-MM-dd' (toISOString usaría UTC y cambiaría de día por la tarde en México) */
 export const localISODate = (date = new Date()) => format(date, 'yyyy-MM-dd');
+
+/** Enlace mailto con asunto y cuerpo (respaldo mientras n8n no tenga credencial de correo) */
+export const mailtoLink = (to, subject, body) => {
+  const recipients = (Array.isArray(to) ? to : [to]).filter(Boolean).join(',');
+  return `mailto:${recipients}?subject=${encodeURIComponent(subject ?? '')}&body=${encodeURIComponent(body ?? '')}`;
+};
+
+/** Solo dígitos, para enlaces de WhatsApp (wa.me) */
+export const phoneDigits = (phone) => String(phone ?? '').replace(/\D/g, '');

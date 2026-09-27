@@ -8,6 +8,7 @@ import {
   doc,
   getDocs,
   query,
+  runTransaction,
   serverTimestamp,
   updateDoc,
   where,
@@ -40,3 +41,31 @@ export const getDeliveriesForMonth = async (yearMonth) => {
     `${a.date} ${a.timeWindow ?? ''}`.localeCompare(`${b.date} ${b.timeWindow ?? ''}`)
   );
 };
+
+// ─── Inventario ───────────────────────────────────────────────
+
+/**
+ * Registra una entrada (+) o salida (−) y ajusta la existencia en una sola transacción,
+ * así el historial y el saldo nunca quedan desfasados. No permite existencias negativas.
+ */
+export const recordInventoryMovement = (item, delta, reason, user) =>
+  runTransaction(db, async (tx) => {
+    const ref = doc(db, 'inventory', item.id);
+    const snap = await tx.get(ref);
+    if (!snap.exists()) throw new Error('El insumo ya no existe.');
+    const current = Number(snap.data().stock) || 0;
+    const next = current + Number(delta);
+    if (next < 0) throw new Error(`Solo hay ${current} ${item.unit ?? ''} en existencia.`);
+    tx.update(ref, { stock: next, updatedAt: serverTimestamp() });
+    tx.set(doc(collection(db, 'inventoryMovements')), {
+      itemId: item.id,
+      itemName: item.name,
+      unit: item.unit ?? '',
+      delta: Number(delta),
+      stockAfter: next,
+      reason: reason || (delta > 0 ? 'Entrada' : 'Salida'),
+      by: user?.email ?? null,
+      createdAt: serverTimestamp(),
+    });
+    return next;
+  });

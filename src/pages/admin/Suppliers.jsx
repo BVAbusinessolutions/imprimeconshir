@@ -11,6 +11,7 @@ import { createItem, deleteItem, listAll, updateItem } from '../../services/admi
 import { analyzeSupplierPrices, n8nErrorMessage } from '../../services/n8n';
 import { supplierItemSchema, supplierSchema } from '../../schemas/validations';
 import { formatCurrency } from '../../utils/helpers';
+import { useOperationsSettings } from '../../hooks/useSettings';
 
 const QUERY_KEY = ['admin', 'suppliers'];
 
@@ -56,7 +57,7 @@ const ItemForm = ({ onAdd }) => {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(supplierItemSchema),
-    defaultValues: { name: '', unit: 'pieza', cost: '', salePrice: '', stock: '', minStock: '' },
+    defaultValues: { name: '', unit: 'pieza', cost: '', salePrice: '' },
   });
 
   return (
@@ -66,14 +67,12 @@ const ItemForm = ({ onAdd }) => {
         reset();
       })}
       noValidate
-      className="grid grid-cols-2 gap-3 border-t border-line pt-4 sm:grid-cols-6"
+      className="grid grid-cols-2 gap-3 border-t border-line pt-4 sm:grid-cols-5"
     >
       <Field label="Insumo" className="col-span-2" error={errors.name?.message} {...register('name')} />
       <Field label="Unidad" error={errors.unit?.message} {...register('unit')} />
       <Field label="Costo" type="number" min="0" step="any" error={errors.cost?.message} {...register('cost')} />
       <Field label="Venta" type="number" min="0" step="any" error={errors.salePrice?.message} {...register('salePrice')} />
-      <Field label="Existencia" type="number" min="0" step="any" error={errors.stock?.message} {...register('stock')} />
-      <Field label="Mínimo" type="number" min="0" step="any" className="col-span-1" error={errors.minStock?.message} {...register('minStock')} />
       <div className="col-span-2 flex items-end sm:col-span-5">
         <Button type="submit" size="sm" variant="outline" disabled={isSubmitting}>
           Agregar a la lista
@@ -90,7 +89,6 @@ const SupplierCard = ({ supplier, analysis, onChange, onDelete }) => {
   const byItem = Object.fromEntries((analysis?.items ?? []).filter((a) => a.supplierId === supplier.id).map((a) => [a.itemId, a]));
 
   const saveItems = (next) => onChange(supplier.id, { items: next });
-  const updateStock = (itemId, stock) => saveItems(items.map((i) => (i.id === itemId ? { ...i, stock: Number(stock) } : i)));
 
   return (
     <Panel
@@ -106,7 +104,7 @@ const SupplierCard = ({ supplier, analysis, onChange, onDelete }) => {
         <EmptyState>Sin insumos. Agrega su lista de precios.</EmptyState>
       ) : (
         <div className="-mx-2 overflow-x-auto">
-          <table className="w-full min-w-[640px] text-left text-sm">
+          <table className="w-full min-w-[520px] text-left text-sm">
             <caption className="sr-only">Lista de precios de {supplier.name}</caption>
             <thead className="text-xs text-muted">
               <tr>
@@ -114,7 +112,6 @@ const SupplierCard = ({ supplier, analysis, onChange, onDelete }) => {
                 <th scope="col" className="px-2 py-2 text-right font-medium">Costo</th>
                 <th scope="col" className="px-2 py-2 text-right font-medium">Venta</th>
                 <th scope="col" className="px-2 py-2 text-right font-medium">Margen</th>
-                <th scope="col" className="px-2 py-2 text-right font-medium">Existencia</th>
                 <th scope="col" className="px-2 py-2 font-medium"><span className="sr-only">Acciones</span></th>
               </tr>
             </thead>
@@ -130,19 +127,6 @@ const SupplierCard = ({ supplier, analysis, onChange, onDelete }) => {
                     <td className="px-2 py-2.5 text-right tabular-nums">{formatCurrency(it.salePrice)}</td>
                     <td className="px-2 py-2.5 text-right tabular-nums">
                       {pct(a?.margin)} {a?.lowMargin && <Badge tone="warning">Bajo</Badge>}
-                    </td>
-                    <td className="px-2 py-2.5 text-right">
-                      <label className="inline-flex items-center justify-end gap-2">
-                        <span className="sr-only">Existencia de {it.name}</span>
-                        <input
-                          type="number"
-                          min="0"
-                          defaultValue={it.stock}
-                          onBlur={(e) => Number(e.target.value) !== Number(it.stock) && updateStock(it.id, e.target.value)}
-                          className="w-20 rounded-lg border border-line bg-paper px-2 py-1 text-right tabular-nums focus:border-ink focus:outline-none"
-                        />
-                        {a?.lowStock && <Badge tone="warning">Mín. {it.minStock}</Badge>}
-                      </label>
                     </td>
                     <td className="px-2 py-2.5 text-right">
                       <button type="button" onClick={() => saveItems(items.filter((i) => i.id !== it.id))} className="text-muted hover:text-ink">
@@ -166,11 +150,16 @@ const SupplierCard = ({ supplier, analysis, onChange, onDelete }) => {
 const Suppliers = () => {
   const qc = useQueryClient();
   const suppliers = useQuery({ queryKey: QUERY_KEY, queryFn: () => listAll('suppliers') });
+  const { settings } = useOperationsSettings();
   const [analysis, setAnalysis] = useState(null);
 
   const analyze = useMutation({
     mutationFn: (list) =>
-      analyzeSupplierPrices({ suppliers: list.map(({ id, name, email, items }) => ({ id, name, email, items: items ?? [] })) }),
+      analyzeSupplierPrices({
+        suppliers: list.map(({ id, name, email, items }) => ({ id, name, email, items: items ?? [] })),
+        minMargin: settings.minMargin,
+        alertEmail: settings.alertEmail,
+      }),
     onSuccess: setAnalysis,
     onError: (error) => toast.error(n8nErrorMessage(error)),
   });
@@ -200,15 +189,15 @@ const Suppliers = () => {
     <>
       <AdminHeader
         title="Proveedores"
-        description="Listas de precios de terceros. n8n calcula los márgenes y avisa por correo cuando un insumo baja de su mínimo."
+        description="Listas de precios de terceros. n8n calcula el margen de cada insumo y avisa cuando queda por debajo del mínimo. Las existencias se llevan en Inventario."
       />
 
       {analysis?.alerts?.length > 0 && (
-        <Panel title="Alertas" className="mb-6 border border-accent/30">
+        <Panel title="Alertas de margen" className="mb-6 border border-accent/30">
           <ul className="space-y-1.5 text-sm">
             {analysis.alerts.map((a, i) => (
               <li key={i} className="flex gap-2">
-                <Badge tone="warning">{a.type === 'stock' ? 'Inventario' : 'Margen'}</Badge>
+                <Badge tone="warning">Margen</Badge>
                 {a.message}
               </li>
             ))}

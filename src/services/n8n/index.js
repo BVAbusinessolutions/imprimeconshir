@@ -4,7 +4,17 @@
  * En modo de prueba (sin VITE_N8N_WEBHOOK_URL) se usan las respuestas simuladas de ./mock.
  */
 import { IS_N8N_MOCK, postToN8n } from './client';
-import { mockAppointment, mockChat, mockFinance, mockQuote, mockRoutes, mockSuppliers } from './mock';
+import {
+  mockAppointment,
+  mockChat,
+  mockEmail,
+  mockFinance,
+  mockForecast,
+  mockNotify,
+  mockQuote,
+  mockRoutes,
+  mockSuppliers,
+} from './mock';
 
 export { IS_N8N_MOCK, n8nErrorMessage } from './client';
 
@@ -41,3 +51,15 @@ export const analyzeSupplierPrices = (payload) =>
 /** Reporte financiero histórico (ingresos por mes y categoría, KPIs, hallazgos estacionales). */
 export const fetchFinanceReport = (payload) =>
   IS_N8N_MOCK ? mockFinance(payload) : postToN8n('finanzas', payload);
+
+/** Prepara (y cuando haya credencial, envía) el aviso de una cita al técnico asignado. */
+export const notifyTechnician = (payload) =>
+  IS_N8N_MOCK ? mockNotify(payload) : postToN8n('notificar', payload);
+
+/** Envía un correo desde el panel (clientes, proveedores, técnicos). */
+export const sendEmail = (payload) =>
+  IS_N8N_MOCK ? mockEmail(payload) : postToN8n('correo', payload);
+
+/** Proyecta un plan de ingresos y gastos a futuro con escenarios. */
+export const forecastPlan = (payload) =>
+  IS_N8N_MOCK ? mockForecast(payload) : postToN8n('proyeccion', payload);

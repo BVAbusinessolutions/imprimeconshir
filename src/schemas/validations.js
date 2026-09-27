@@ -108,12 +108,35 @@ export const supplierSchema = z.object({
 
 const nonNegative = (message) => z.coerce.number({ message }).nonnegative({ message });
 
-/** Insumo o servicio de un proveedor */
+/** Insumo o servicio de un proveedor (lista de precios; la existencia vive en Inventario) */
 export const supplierItemSchema = z.object({
   name: z.string().min(2, { message: 'Nombre requerido' }),
   unit: z.string().min(1, { message: 'Unidad requerida' }),
   cost: nonNegative('Costo inválido'),
   salePrice: nonNegative('Precio inválido'),
-  stock: nonNegative('Existencia inválida'),
-  minStock: nonNegative('Mínimo inválido'),
+});
+
+/** Cita creada desde el panel */
+export const adminAppointmentSchema = z.object({
+  reason: z.string().min(3, { message: 'Motivo requerido' }),
+  slot: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, { message: 'Fecha y hora requeridas' }),
+  address: z.string().min(8, { message: 'Dirección requerida' }),
+  technicianId: z.string().optional(),
+  notes: z.string().max(500).optional(),
+  contact: z.object({
+    name: z.string().min(2, { message: 'Nombre requerido' }),
+    phone: z.string().min(8, { message: 'Teléfono requerido' }),
+    email: z.string().email({ message: 'Email no válido' }).or(z.literal('')).optional(),
+  }),
+});
+
+/** Insumo de inventario propio */
+export const inventoryItemSchema = z.object({
+  name: z.string().min(2, { message: 'Nombre requerido' }),
+  category: z.string().optional(),
+  unit: z.string().min(1, { message: 'Unidad requerida' }),
+  stock: z.coerce.number({ message: 'Existencia inválida' }).nonnegative({ message: 'Existencia inválida' }),
+  minStock: z.coerce.number({ message: 'Mínimo inválido' }).nonnegative({ message: 'Mínimo inválido' }),
+  location: z.string().optional(),
+  supplierId: z.string().optional(),
 });

@@ -5,10 +5,15 @@ import { Helmet } from 'react-helmet-async';
 const SECTIONS = [
   { to: '/admin', label: 'Resumen', end: true },
   { to: '/admin/pedidos', label: 'Cotizaciones y pedidos' },
+  { to: '/admin/citas', label: 'Citas técnicas' },
   { to: '/admin/productos', label: 'Productos' },
-  { to: '/admin/logistica', label: 'Logística' },
+  { to: '/admin/inventario', label: 'Inventario' },
   { to: '/admin/proveedores', label: 'Proveedores' },
+  { to: '/admin/logistica', label: 'Logística' },
   { to: '/admin/finanzas', label: 'Finanzas' },
+  { to: '/admin/planeacion', label: 'Planeación' },
+  { to: '/admin/correos', label: 'Correos' },
+  { to: '/admin/configuracion', label: 'Configuración' },
 ];
 
 const linkClass = ({ isActive }) =>

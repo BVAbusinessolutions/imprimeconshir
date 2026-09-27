@@ -16,10 +16,6 @@ const TABS = {
       lost: 'Perdida',
     },
   },
-  appointments: {
-    label: 'Citas técnicas',
-    statuses: { pending: 'Pendiente', confirmed: 'Confirmada', done: 'Realizada', cancelled: 'Cancelada' },
-  },
   orders: {
     label: 'Pedidos',
     statuses: {
@@ -48,12 +44,6 @@ const describe = (tab, item) => {
       amount: item.total,
     };
   }
-  if (tab === 'appointments') {
-    return {
-      title: item.reason || 'Visita técnica',
-      meta: [item.slot?.replace('T', ' '), item.address, item.contact?.name, item.contact?.phone],
-    };
-  }
   return { title: `Pedido ${item.id.slice(0, 6).toUpperCase()}`, meta: [item.fullName, item.phone, safeDate(item.createdAt)], amount: item.total };
 };
 
@@ -72,7 +62,7 @@ const AdminOrders = () => {
     <>
       <AdminHeader
         title="Cotizaciones y pedidos"
-        description="Las cotizaciones y citas llegan desde n8n; aquí confirmas y das seguimiento."
+        description="Las cotizaciones llegan desde n8n; aquí confirmas precios y das seguimiento. Las citas están en su propia sección."
       />
 
       <div role="tablist" aria-label="Tipo" className="no-scrollbar mb-6 flex gap-2 overflow-x-auto">

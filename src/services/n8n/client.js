@@ -51,6 +51,7 @@ export const postToN8n = async (action, payload, { retries = 1 } = {}) => {
 export const n8nErrorMessage = (error) => {
   if (error?.code === 'ECONNABORTED') return 'La respuesta está tardando más de lo normal. Intenta de nuevo.';
   if (!error?.response) return 'No pudimos conectar. Revisa tu conexión e intenta de nuevo.';
+  if (error.response.status === 403) return 'No tienes permiso para esta acción. Inicia sesión con una cuenta de administrador.';
   if (error.response.status === 429) return 'Demasiados mensajes seguidos. Espera un momento.';
   return 'Algo salió mal de nuestro lado. Intenta de nuevo en un momento.';
 };

@@ -82,6 +82,40 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    match /inventory/{itemId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /inventoryMovements/{movementId} {
+      allow read, create: if isAdmin();
+      // El historial de movimientos no se edita ni se borra
+      allow update, delete: if false;
+    }
+
+    match /emails/{emailId} {
+      allow read, create: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    match /plans/{planId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /expenses/{expenseId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ─── Configuración ──────────────────────────────────────────
+    // "public" (contacto del negocio) la lee cualquiera; el resto solo el admin.
+    match /settings/public {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /settings/{docId} {
+      allow read, write: if isAdmin();
+    }
+
     // Cualquier otra colección queda cerrada por defecto
     match /{document=**} {
       allow read, write: if false;

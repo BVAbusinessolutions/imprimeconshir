@@ -13,7 +13,7 @@ Lo que necesito de ti (o de Shirlene) para terminar. Marca con `[x]` lo que ya e
   - Nombre sugerido: `subcategoria-01.jpg` (p. ej. `rotulacion-vehicular-01.jpg`).
   - Carpeta: `pendientes/fotos/`.
   - Reemplazan las fotos de ejemplo de `src/data/exampleImages.js`. **Varias de las fotos de ejemplo muestran marcas o textos de terceros; hay que cambiarlas antes de publicar.**
-- [ ] **Datos de contacto para el pie de página**: teléfono, correo, dirección, horario y redes sociales (links).
+- [ ] **Datos de contacto para el pie de página**: teléfono, correo, dirección, horario y redes sociales. Captúralos tú mismo en *Admin → Configuración → Contacto público*.
 - [ ] **Productos del catálogo**. Una vez listo el panel (Fase 3), Shirlene puede cargarlos desde *Admin → Productos*. Si prefieres pasármelos, usa la plantilla `productos.csv` de esta carpeta.
 - [ ] **Revisar subcategorías**. Las de *Publicidad y Eventos* y *Promocionales* las propuse yo (`src/data/categories.js`): ¿se quedan así?
 - [ ] **Vista 360º** (opcional): 24–36 fotos del mismo trabajo girando a su alrededor, con la misma distancia y la misma luz. ¿La hacemos más adelante?
@@ -34,14 +34,14 @@ Lo que necesito de ti (o de Shirlene) para terminar. Marca con `[x]` lo que ya e
 
 ## 3. Panel administrativo (Fase 3)
 
-- [ ] **Zonas de reparto** reales de la ciudad (hoy: Centro, Norte, Sur, Oriente, Poniente), **dirección del taller** (punto de salida de las rutas) y **nombres de los mensajeros**. Se configuran en `src/data/logistics.js`.
+- [ ] En *Admin → Configuración → Operación*: **zonas de reparto** reales, **dirección del taller** (y coordenadas si las tienes), **mensajeros** y **técnicos (ninjas)** con su teléfono y correo.
 - [ ] **Datos históricos de ventas** (Excel o CSV por mes y por categoría) si quieren ver años anteriores en *Finanzas*; hoy el reporte muestra datos de ejemplo.
-- [ ] **Correo para alertas de proveedores** (inventario bajo y margen bajo): a qué dirección deben llegar.
-- [ ] **Margen mínimo aceptable** para las alertas (hoy 25 %).
+- [ ] En la misma pantalla: **correo para alertas** (inventario bajo y margen bajo) y **margen mínimo** aceptable (hoy 25 %).
+- [ ] **Inventario inicial**: cargar los insumos con su existencia y mínimo en *Admin → Inventario*.
 
 ## 4. Seguridad antes de publicar
 
 - [ ] En el nodo *Webhook Principal* de n8n, cambiar *Allowed Origins (CORS)* de `*` al dominio real.
-- [ ] Habilitar en el servidor de n8n `NODE_FUNCTION_ALLOW_BUILTIN=crypto` para que el workflow pueda verificar el token de Firebase de los usuarios (te dejo el nodo listo cuando lo actives).
+- [x] ~~Verificar en n8n que las acciones del panel las haga un admin~~ → resuelto en el workflow (nodo *Verificar admin*), no requiere configurar nada.
 - [ ] **Volver a publicar las reglas** (cambiaron en la Fase 3): `firebase deploy --only firestore:rules,storage`. Repetirlo cada vez que cambie `firestore.rules` o `storage.rules`.
 - [ ] Crear el usuario admin de Shirlene (documento `users/{uid}` con `role: "admin"`).

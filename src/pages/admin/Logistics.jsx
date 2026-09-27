@@ -10,7 +10,8 @@ import Button from '../../components/ui/Button';
 import Field from '../../components/ui/Field';
 import { createItem, deleteItem, getDeliveriesForMonth, updateItem } from '../../services/adminService';
 import { n8nErrorMessage, planDeliveryRoutes } from '../../services/n8n';
-import { COURIERS, DELIVERY_STATUS, ORIGIN, ZONES } from '../../data/logistics';
+import { DELIVERY_STATUS } from '../../data/logistics';
+import { useOperationsSettings } from '../../hooks/useSettings';
 import { deliverySchema } from '../../schemas/validations';
 import { localISODate } from '../../utils/helpers';
 
@@ -64,7 +65,7 @@ const MonthCalendar = ({ month, deliveries, selected, onSelect }) => {
   );
 };
 
-const DeliveryForm = ({ date, onCreated }) => {
+const DeliveryForm = ({ date, zones, onCreated }) => {
   const {
     register,
     handleSubmit,
@@ -100,7 +101,7 @@ const DeliveryForm = ({ date, onCreated }) => {
       <Field label="Dirección" error={errors.address?.message} {...register('address')} />
       <Field as="select" label="Zona" error={errors.zone?.message} {...register('zone')}>
         <option value="">Elige una zona</option>
-        {ZONES.map((z) => (
+        {zones.map((z) => (
           <option key={z} value={z}>
             {z}
           </option>
@@ -156,6 +157,7 @@ const RoutesResult = ({ result }) => (
 
 const Logistics = () => {
   const qc = useQueryClient();
+  const { settings } = useOperationsSettings();
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
   const [selected, setSelected] = useState(() => localISODate());
   const [routes, setRoutes] = useState(null);
@@ -177,8 +179,8 @@ const Logistics = () => {
     mutationFn: () =>
       planDeliveryRoutes({
         date: selected,
-        origin: ORIGIN,
-        couriers: COURIERS,
+        origin: settings.origin,
+        couriers: settings.couriers,
         deliveries: dayDeliveries
           .filter((d) => d.status !== 'delivered')
           .map(({ id, customer, address, zone, lat, lng, timeWindow }) => ({ id, customer, address, zone, lat, lng, timeWindow })),
@@ -262,7 +264,7 @@ const Logistics = () => {
           </Panel>
 
           <Panel title="Nueva entrega">
-            <DeliveryForm date={selected} onCreated={refresh} />
+            <DeliveryForm date={selected} zones={settings.zones} onCreated={refresh} />
           </Panel>
         </div>
       </div>

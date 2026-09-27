@@ -23,6 +23,11 @@ const AdminOrders    = lazy(() => import('../pages/admin/Orders'));
 const AdminLogistics = lazy(() => import('../pages/admin/Logistics'));
 const AdminSuppliers = lazy(() => import('../pages/admin/Suppliers'));
 const AdminFinance   = lazy(() => import('../pages/admin/Finance'));
+const AdminAppointments = lazy(() => import('../pages/admin/Appointments'));
+const AdminInventory = lazy(() => import('../pages/admin/Inventory'));
+const AdminPlanning  = lazy(() => import('../pages/admin/Planning'));
+const AdminEmails    = lazy(() => import('../pages/admin/Emails'));
+const AdminSettings  = lazy(() => import('../pages/admin/Settings'));
 const NotFound    = lazy(() => import('../pages/NotFound'));
 
 const AppRouter = () => (
@@ -58,6 +63,11 @@ const AppRouter = () => (
             <Route path="logistica" element={<AdminLogistics />} />
             <Route path="proveedores" element={<AdminSuppliers />} />
             <Route path="finanzas" element={<AdminFinance />} />
+            <Route path="citas" element={<AdminAppointments />} />
+            <Route path="inventario" element={<AdminInventory />} />
+            <Route path="planeacion" element={<AdminPlanning />} />
+            <Route path="correos" element={<AdminEmails />} />
+            <Route path="configuracion" element={<AdminSettings />} />
           </Route>
         </Route>
 

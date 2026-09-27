@@ -10,8 +10,11 @@ La web se comunica con **un solo webhook** `POST` (el nodo *Webhook Principal* d
 | `rutas` | Agrupar entregas del día por zona y armar rutas | Admin → Logística |
 | `proveedores` | Márgenes de listas de proveedores y alertas de inventario | Admin → Proveedores |
 | `finanzas` | Reporte histórico de ventas | Admin → Finanzas |
+| `notificar` | Preparar/enviar el aviso de una cita al técnico | Admin → Citas técnicas |
+| `correo` | Validar y enviar correos del panel | Admin → Correos |
+| `proyeccion` | Proyección de un plan de gastos e ingresos | Admin → Planeación |
 
-Una `action` desconocida responde `400`.
+Una `action` desconocida responde `400`. Las acciones de admin (`rutas`, `proveedores`, `finanzas`, `notificar`, `correo`, `proyeccion`) responden `403` si quien llama no es administrador.
 
 ## Cómo actualizar el workflow
 
@@ -21,7 +24,9 @@ Para aplicar cambios: importa `n8n-workflow-base.json` en n8n (*Workflows → Im
 
 ## Seguridad
 
-- Si el visitante inició sesión, cada petición lleva `Authorization: Bearer <Firebase ID token>`. **n8n debe verificar el token** (firma con las llaves públicas de Google, `aud` = ID del proyecto de Firebase) antes de confiar en `uid` o `email` del cuerpo. Los campos `uid`/`user` del cuerpo son solo informativos.
+- Si el visitante inició sesión, cada petición lleva `Authorization: Bearer <Firebase ID token>`. Los campos `uid`/`user` del cuerpo son solo informativos: nunca confíes en ellos.
+- **Acciones de admin**: el nodo *Preparar* lee el `uid` del token y *Verificar admin* pide `users/{uid}` a la API REST de Firestore **con ese mismo token**. Firestore rechaza tokens inválidos, vencidos o de otro proyecto, y las reglas solo dejan leer el perfil a su dueño; el flujo continúa únicamente si el perfil trae `role: "admin"`. No requiere cuenta de servicio.
+- Para las acciones públicas que usen el `uid` (p. ej. guardar una cotización a nombre del cliente), aplica la misma verificación antes de guardar.
 - El chat y la cotización también funcionan sin sesión: aplica límite de peticiones por IP o por `sessionId` en n8n (o un proxy delante) para evitar abuso del modelo de IA.
 - En el nodo *Webhook Principal*, opción *Allowed Origins (CORS)*: hoy está en `*`; cámbiala a tu dominio (y `http://localhost:5173` para desarrollo) al publicar.
 - Las respuestas del bot se muestran como **texto plano**; no envíes HTML.
@@ -297,6 +302,26 @@ Agrupa por `zone`, asigna mensajeros en rotación y ordena las paradas por horar
 ```
 
 Hoy devuelve **datos de ejemplo** (`isSample: true`) con la estacionalidad baja de mayo y septiembre. **Pendiente:** leer los pedidos reales de Firestore y **verificar que el token sea de un admin** antes de responder, porque este reporte tendrá datos sensibles.
+
+---
+
+## `action: "notificar"` (admin)
+
+Petición: `{ "action": "notificar", "appointment": { "reason", "slot", "address", "contact": { "name", "phone" }, "notes" }, "technician": { "name", "email", "phone" } }`.
+
+Respuesta: `{ "subject", "text", "to", "sent": false, "message" }`. El texto incluye motivo, fecha, dirección con enlace a Google Maps y datos del cliente. **Pendiente:** después del nodo, enviar `text` por Gmail/Telegram al técnico y devolver `sent: true`. Mientras tanto, el panel ofrece enviarlo por WhatsApp o por el correo propio.
+
+## `action: "correo"` (admin)
+
+Petición: `{ "action": "correo", "to": ["correo", …], "subject", "text", "kind": "manual" }`.
+
+Respuesta: `{ "status": "queued" | "invalid", "sent": false, "count", "recipients", "invalid", "subject", "text", "message" }`. Valida las direcciones y limita a 50 destinatarios por envío. **Pendiente:** conectar un nodo Gmail/SMTP que envíe a `recipients` y devolver `sent: true`. El panel guarda cada envío en `emails`.
+
+## `action: "proyeccion"` (admin)
+
+Petición: `{ "action": "proyeccion", "startMonth": "2026-10", "months": 12, "startingBalance", "baseline": [12 ventas Ene..Dic], "growth": 0.05, "costOfSalesPct": 0.45, "expenses": [{ "concept", "category", "amount", "type": "monthly" | "once", "month", "months?" }], "incomes": [...] }`.
+
+Respuesta: `{ "rows": [{ "month", "label", "income", "costOfSales", "expenses", "net", "balance" }], "finalBalance", "minBalance", "minMonth", "negativeMonths", "viable", "breakEvenGrowth", "scenarios": { "pessimistic", "base", "optimistic" }, "verdict" }`. El panel calcula lo mismo en el navegador para dar respuesta instantánea; la acción existe para reportes programados (p. ej. enviar cada lunes el estado del plan).
 
 ---
 

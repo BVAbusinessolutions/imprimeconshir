@@ -9,9 +9,13 @@ const today = () => localISODate();
 
 const SHORTCUTS = [
   { to: '/admin/pedidos', title: 'Cotizaciones y pedidos', text: 'Confirma precios y da seguimiento.' },
+  { to: '/admin/citas', title: 'Citas técnicas', text: 'Visitas de medición y avisos a los ninjas.' },
   { to: '/admin/logistica', title: 'Logística', text: 'Agenda entregas y arma rutas por zona.' },
+  { to: '/admin/inventario', title: 'Inventario', text: 'Existencias, entradas, salidas y pedidos.' },
   { to: '/admin/proveedores', title: 'Proveedores', text: 'Listas de precios, márgenes e inventario.' },
   { to: '/admin/finanzas', title: 'Finanzas', text: 'Ventas por mes y por categoría.' },
+  { to: '/admin/planeacion', title: 'Planeación', text: 'Simula gastos e ingresos a futuro.' },
+  { to: '/admin/correos', title: 'Correos', text: 'Escribe a clientes, proveedores y técnicos.' },
   { to: '/admin/productos', title: 'Productos', text: 'Lo que ve el cliente en el catálogo.' },
 ];
 
@@ -22,17 +26,16 @@ const Dashboard = () => {
     queryKey: ['admin', 'deliveries', today().slice(0, 7)],
     queryFn: () => getDeliveriesForMonth(today().slice(0, 7)),
   });
-  const suppliers = useQuery({ queryKey: ['admin', 'suppliers'], queryFn: () => listAll('suppliers') });
+  const inventory = useQuery({ queryKey: ['admin', 'inventory'], queryFn: () => listAll('inventory') });
 
   const pendingQuotes = quotes.data?.filter((q) => ['preliminary', 'requires_visit', 'pending'].includes(q.status)).length;
   const upcoming = appointments.data?.filter((a) => a.status !== 'cancelled' && (a.slot ?? '') >= today()).length;
   const todayDeliveries = deliveries.data?.filter((d) => d.date === today()).length;
-  const lowStock = suppliers.data
-    ?.flatMap((s) => s.items ?? [])
-    .filter((i) => i.minStock != null && Number(i.stock) <= Number(i.minStock)).length;
+  const lowStock = inventory.data?.filter((i) => i.minStock != null && Number(i.stock) <= Number(i.minStock)).length;
+  const unassigned = appointments.data?.filter((a) => !a.technicianId && a.status !== 'cancelled' && (a.slot ?? '') >= today()).length;
 
   const show = (q, value) => (q.isLoading ? '…' : q.isError ? '—' : value ?? 0);
-  const anyError = [quotes, appointments, deliveries, suppliers].some((q) => q.isError);
+  const anyError = [quotes, appointments, deliveries, inventory].some((q) => q.isError);
 
   return (
     <>
@@ -47,9 +50,9 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile label="Cotizaciones por confirmar" value={show(quotes, pendingQuotes)} />
-        <StatTile label="Citas próximas" value={show(appointments, upcoming)} />
+        <StatTile label="Citas próximas" value={show(appointments, upcoming)} hint={unassigned ? unassigned + " sin técnico" : undefined} />
         <StatTile label="Entregas de hoy" value={show(deliveries, todayDeliveries)} />
-        <StatTile label="Insumos con inventario bajo" value={show(suppliers, lowStock)} />
+        <StatTile label="Insumos bajo mínimo" value={show(inventory, lowStock)} />
       </div>
 
       <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

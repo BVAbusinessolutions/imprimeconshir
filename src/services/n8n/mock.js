@@ -2,7 +2,17 @@
  * Modo de prueba: responde como n8n usando la misma lógica que el workflow (logic.js),
  * con una pequeña espera para simular la red.
  */
-import { analyzeSuppliers, appointmentReply, chatReply, financeReport, planRoutes, quoteReply } from './logic';
+import {
+  analyzeSuppliers,
+  appointmentReply,
+  chatReply,
+  emailReply,
+  financeReport,
+  notifyReply,
+  planForecast,
+  planRoutes,
+  quoteReply,
+} from './logic';
 
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -34,4 +44,19 @@ export const mockSuppliers = async (payload) => {
 export const mockFinance = async (payload) => {
   await delay(900);
   return financeReport(payload);
+};
+
+export const mockNotify = async (payload) => {
+  await delay(600);
+  return notifyReply(payload);
+};
+
+export const mockEmail = async (payload) => {
+  await delay(700);
+  return emailReply(payload);
+};
+
+export const mockForecast = async (payload) => {
+  await delay(500);
+  return planForecast(payload);
 };

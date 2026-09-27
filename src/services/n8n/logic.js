@@ -208,16 +208,25 @@ export function planRoutes(body) {
   };
 }
 
-// ─── Proveedores: márgenes y alertas de inventario ────────────
+// ─── Proveedores e inventario: márgenes y alertas ─────────────
 
-const MIN_MARGIN = 0.25; // debajo de este margen se marca alerta
+const DEFAULT_MIN_MARGIN = 0.25; // debajo de este margen se marca alerta
 
 /**
- * body: { suppliers: [{ id, name, email?, items: [{ id, name, unit, cost, salePrice, stock, minStock }] }] }
+ * body: {
+ *   suppliers: [{ id, name, email?, items: [{ id, name, unit, cost, salePrice }] }],
+ *   inventory: [{ id, name, unit, stock, minStock, supplierId? }],
+ *   minMargin?: 0.25,
+ *   alertEmail?: 'correo para alertas'
+ * }
  */
 export function analyzeSuppliers(body) {
   const suppliers = Array.isArray(body.suppliers) ? body.suppliers : [];
+  const inventory = Array.isArray(body.inventory) ? body.inventory : [];
+  const minMargin = typeof body.minMargin === 'number' ? body.minMargin : DEFAULT_MIN_MARGIN;
+  const supplierName = Object.fromEntries(suppliers.map((s) => [s.id, s.name]));
   const items = [];
+  const stock = [];
   const alerts = [];
 
   for (const s of suppliers) {
@@ -225,20 +234,215 @@ export function analyzeSuppliers(body) {
       const cost = Number(it.cost) || 0;
       const sale = Number(it.salePrice) || 0;
       const margin = sale > 0 ? round2((sale - cost) / sale) : null;
-      const lowStock = it.minStock != null && it.stock != null && Number(it.stock) <= Number(it.minStock);
-      const lowMargin = margin != null && margin < MIN_MARGIN;
-      items.push({ supplierId: s.id, itemId: it.id, margin, profit: sale > 0 ? round2(sale - cost) : null, lowStock, lowMargin });
-      if (lowStock) alerts.push({ type: 'stock', supplier: s.name, item: it.name, message: 'Inventario bajo de ' + it.name + ' (' + s.name + '): quedan ' + it.stock + ' ' + (it.unit || '') + '.' });
-      if (lowMargin) alerts.push({ type: 'margin', supplier: s.name, item: it.name, message: 'Margen de ' + Math.round(margin * 100) + '% en ' + it.name + ' (' + s.name + '), por debajo del ' + MIN_MARGIN * 100 + '%.' });
+      const lowMargin = margin != null && margin < minMargin;
+      items.push({ supplierId: s.id, itemId: it.id, margin, profit: sale > 0 ? round2(sale - cost) : null, lowMargin });
+      if (lowMargin) {
+        alerts.push({
+          type: 'margin',
+          supplier: s.name,
+          item: it.name,
+          message: 'Margen de ' + Math.round(margin * 100) + '% en ' + it.name + ' (' + s.name + '), por debajo del ' + Math.round(minMargin * 100) + '%.',
+        });
+      }
+    }
+  }
+
+  for (const it of inventory) {
+    const low = it.minStock != null && Number(it.stock) <= Number(it.minStock);
+    stock.push({ itemId: it.id, lowStock: low });
+    if (low) {
+      const from = supplierName[it.supplierId];
+      alerts.push({
+        type: 'stock',
+        supplier: from || null,
+        item: it.name,
+        message: 'Inventario bajo de ' + it.name + ': quedan ' + it.stock + ' ' + (it.unit || '') + ' (mínimo ' + it.minStock + ')' + (from ? '. Proveedor: ' + from + '.' : '.'),
+      });
     }
   }
 
   return {
     items,
+    stock,
     alerts,
+    alertEmail: body.alertEmail || null,
     // n8n cambia esto a true cuando el nodo de correo envía las alertas
     emailSent: false,
     message: alerts.length ? alerts.length + ' alerta(s) detectada(s).' : 'Sin alertas: márgenes e inventario en orden.',
+  };
+}
+
+// ─── Citas: aviso al técnico ──────────────────────────────────
+
+/** Texto del aviso para el técnico (también lo usa la web para WhatsApp y correo). */
+export function buildTechnicianMessage(appointment, technician) {
+  const a = appointment || {};
+  const c = a.contact || {};
+  const when = String(a.slot || '').replace('T', ' a las ');
+  const maps = a.address ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(a.address) : '';
+  const subject = 'Nueva visita: ' + (a.reason || 'visita técnica') + (when ? ' · ' + when : '');
+  const text = [
+    'Hola ' + ((technician && technician.name) || '') + ', tienes una visita asignada.',
+    '',
+    'Motivo: ' + (a.reason || 'Visita técnica'),
+    'Cuándo: ' + (when || 'por confirmar'),
+    'Dirección: ' + (a.address || 'por confirmar'),
+    maps ? 'Mapa: ' + maps : '',
+    'Cliente: ' + [c.name, c.phone].filter(Boolean).join(' · '),
+    a.notes ? 'Notas: ' + a.notes : '',
+  ]
+    .filter((line, i, all) => line !== '' || (i > 0 && all[i - 1] !== ''))
+    .join('\n')
+    .trim();
+  return { subject, text };
+}
+
+/** body: { appointment, technician: { name, email, phone } } */
+export function notifyReply(body) {
+  const technician = body.technician || {};
+  if (!technician.email && !technician.phone) {
+    return { sent: false, message: 'El técnico no tiene correo ni teléfono registrado.' };
+  }
+  const msg = buildTechnicianMessage(body.appointment, technician);
+  return {
+    ...msg,
+    to: technician.email || null,
+    // n8n cambia esto a true cuando el nodo de Gmail/Telegram envía el aviso
+    sent: false,
+    message: 'Aviso preparado para ' + (technician.name || 'el técnico') + '.',
+  };
+}
+
+// ─── Correos ──────────────────────────────────────────────────
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_RECIPIENTS = 50;
+
+/** body: { to: [correo], subject, text, kind? } → valida y deja listo el envío. */
+export function emailReply(body) {
+  const to = (Array.isArray(body.to) ? body.to : [body.to]).map((e) => String(e || '').trim()).filter(Boolean);
+  const valid = to.filter((e) => EMAIL_RE.test(e));
+  const invalid = to.filter((e) => !EMAIL_RE.test(e));
+
+  if (!valid.length) return { status: 'invalid', sent: false, count: 0, invalid, message: 'No hay destinatarios válidos.' };
+  if (valid.length > MAX_RECIPIENTS) {
+    return { status: 'invalid', sent: false, count: valid.length, invalid, message: 'Máximo ' + MAX_RECIPIENTS + ' destinatarios por envío.' };
+  }
+  if (!String(body.subject || '').trim() || !String(body.text || '').trim()) {
+    return { status: 'invalid', sent: false, count: valid.length, invalid, message: 'Falta el asunto o el mensaje.' };
+  }
+
+  return {
+    status: 'queued',
+    // n8n cambia esto a true cuando el nodo de correo realmente envía
+    sent: false,
+    count: valid.length,
+    recipients: valid,
+    invalid,
+    subject: String(body.subject).trim(),
+    text: String(body.text).trim(),
+    message: valid.length + ' correo(s) listo(s) para enviar.',
+  };
+}
+
+// ─── Planeación financiera: proyección y escenarios ───────────
+
+const addMonthsIso = (ym, n) => {
+  const [y, m] = ym.split('-').map(Number);
+  const d = new Date(y, m - 1 + n, 1);
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1);
+};
+
+const MONTH_LABELS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+// ¿El movimiento aplica en este mes? type: 'monthly' (desde `month`, opcionalmente por `months`) o 'once'
+const appliesIn = (item, ym) => {
+  const start = item.month || '0000-00';
+  if (item.type === 'once') return ym === start;
+  if (ym < start) return false;
+  if (item.months) return ym < addMonthsIso(start, Number(item.months));
+  return true;
+};
+
+function simulate(body, growth) {
+  const months = Math.min(Math.max(Number(body.months) || 12, 1), 36);
+  const start = body.startMonth || isoDay(0).slice(0, 7);
+  const baseline = Array.isArray(body.baseline) && body.baseline.length === 12 ? body.baseline : new Array(12).fill(0);
+  const costPct = Math.min(Math.max(Number(body.costOfSalesPct) || 0, 0), 1);
+  const expenses = Array.isArray(body.expenses) ? body.expenses : [];
+  const incomes = Array.isArray(body.incomes) ? body.incomes : [];
+  let balance = Number(body.startingBalance) || 0;
+
+  const rows = [];
+  for (let i = 0; i < months; i++) {
+    const ym = addMonthsIso(start, i);
+    const monthIndex = Number(ym.slice(5, 7)) - 1;
+    const sales = Math.round((Number(baseline[monthIndex]) || 0) * (1 + growth));
+    const extraIncome = incomes.filter((x) => appliesIn(x, ym)).reduce((a, x) => a + (Number(x.amount) || 0), 0);
+    const income = sales + extraIncome;
+    const costOfSales = Math.round(sales * costPct);
+    const planned = expenses.filter((x) => appliesIn(x, ym)).reduce((a, x) => a + (Number(x.amount) || 0), 0);
+    const net = income - costOfSales - planned;
+    balance += net;
+    rows.push({ month: ym, label: MONTH_LABELS[monthIndex] + ' ' + ym.slice(2, 4), income, costOfSales, expenses: planned, net, balance });
+  }
+
+  const minRow = rows.reduce((a, r) => (r.balance < a.balance ? r : a), rows[0]);
+  return {
+    rows,
+    finalBalance: rows[rows.length - 1].balance,
+    minBalance: minRow.balance,
+    minMonth: minRow.label,
+    negativeMonths: rows.filter((r) => r.balance < 0).map((r) => r.label),
+    totalIncome: rows.reduce((a, r) => a + r.income, 0),
+    totalExpenses: rows.reduce((a, r) => a + r.expenses + r.costOfSales, 0),
+  };
+}
+
+/**
+ * body: {
+ *   startMonth: 'yyyy-MM', months: 12, startingBalance,
+ *   baseline: [12 ventas por mes calendario (Ene..Dic)], growth: 0.05, costOfSalesPct: 0.45,
+ *   expenses: [{ concept, category, amount, type: 'monthly'|'once', month, months? }],
+ *   incomes:  [{ concept, amount, type, month, months? }]
+ * }
+ */
+export function planForecast(body) {
+  const growth = Number(body.growth) || 0;
+  const spread = typeof body.scenarioSpread === 'number' ? body.scenarioSpread : 0.1;
+  const base = simulate(body, growth);
+  const scenario = (g) => {
+    const r = simulate(body, g);
+    return { growth: round2(g), finalBalance: r.finalBalance, minBalance: r.minBalance, viable: r.minBalance >= 0 };
+  };
+
+  // Crecimiento mínimo necesario para no quedar en negativo ningún mes (búsqueda binaria entre -90% y +300%)
+  let lo = -0.9;
+  let hi = 3;
+  let breakEvenGrowth = null;
+  if (simulate(body, hi).minBalance >= 0) {
+    for (let i = 0; i < 40; i++) {
+      const mid = (lo + hi) / 2;
+      if (simulate(body, mid).minBalance >= 0) hi = mid;
+      else lo = mid;
+    }
+    breakEvenGrowth = round2(hi);
+  }
+
+  const viable = base.minBalance >= 0;
+  return {
+    ...base,
+    growth,
+    viable,
+    breakEvenGrowth,
+    scenarios: {
+      pessimistic: scenario(growth - spread),
+      base: scenario(growth),
+      optimistic: scenario(growth + spread),
+    },
+    verdict: viable
+      ? 'El plan resulta: la caja nunca queda en negativo y cierra en ' + base.finalBalance + ' MXN.'
+      : 'El plan no resulta: la caja queda en negativo en ' + base.negativeMonths.join(', ') + ' (punto más bajo: ' + base.minMonth + ').',
   };
 }
 
