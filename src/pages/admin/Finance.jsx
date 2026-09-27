@@ -15,7 +15,7 @@ import {
   YAxis,
 } from 'recharts';
 import { AdminHeader, Badge, ErrorNote, LoadingBlock, Panel, StatTile } from '../../components/admin/AdminUI';
-import { fetchFinanceReport } from '../../services/n8n';
+import { fetchFinanceReport, n8nErrorMessage } from '../../services/n8n';
 import { CATEGORY_COLORS, SERIES, VIZ } from '../../data/vizPalette';
 import { formatCurrency } from '../../utils/helpers';
 
@@ -225,7 +225,7 @@ const Finance = () => {
       />
 
       {report.isLoading && <LoadingBlock className="h-80" />}
-      {report.isError && <ErrorNote>No pudimos obtener el reporte de n8n.</ErrorNote>}
+      {report.isError && <ErrorNote>{n8nErrorMessage(report.error)}</ErrorNote>}
 
       {r && (
         <div className="space-y-6">

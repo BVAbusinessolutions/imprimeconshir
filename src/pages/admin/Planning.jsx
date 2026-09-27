@@ -16,10 +16,10 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { AdminHeader, Badge, ConfirmButton, EmptyState, Panel, StatTile } from '../../components/admin/AdminUI';
+import { AdminHeader, Badge, ConfirmButton, EmptyState, ErrorNote, Panel, StatTile } from '../../components/admin/AdminUI';
 import Button from '../../components/ui/Button';
 import { createItem, deleteItem, listAll, updateItem } from '../../services/adminService';
-import { fetchFinanceReport } from '../../services/n8n';
+import { fetchFinanceReport, n8nErrorMessage } from '../../services/n8n';
 import { planForecast } from '../../services/n8n/logic';
 import { SERIES, VIZ } from '../../data/vizPalette';
 import { formatCurrency } from '../../utils/helpers';
@@ -411,6 +411,11 @@ const Planning = () => {
         }
       />
 
+      {history.isError && (
+        <div className="mb-6">
+          <ErrorNote>Sin ventas base del año pasado: {n8nErrorMessage(history.error)} La proyección usa /usr/bin/bash de ventas.</ErrorNote>
+        </div>
+      )}
       {history.data?.isSample && (
         <p className="mb-6 flex flex-wrap items-center gap-2 text-sm text-muted">
           <Badge tone="warning">Base de ejemplo</Badge>

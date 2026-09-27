@@ -14,7 +14,12 @@ import './index.css';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 2,
+      // Reintentar fallas de red, no respuestas que no van a cambiar (formato inválido, sin permiso)
+      retry: (failureCount, error) =>
+        failureCount < 2 &&
+        error?.code !== 'N8N_UNEXPECTED_RESPONSE' &&
+        error?.code !== 'permission-denied' &&
+        error?.response?.status !== 403,
       refetchOnWindowFocus: false,
     },
   },
