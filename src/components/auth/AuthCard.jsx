@@ -34,6 +34,17 @@ export const GoogleButton = ({ onClick, disabled, label = 'Continuar con Google'
   </button>
 );
 
+/** Aviso de que continuar con Google implica aceptar el aviso de privacidad. */
+export const GoogleConsent = () => (
+  <p className="mt-2 text-center text-xs text-muted">
+    Al continuar con Google aceptas el{' '}
+    <a href="/aviso-de-privacidad" target="_blank" rel="noopener" className="underline underline-offset-2">
+      aviso de privacidad
+    </a>
+    .
+  </p>
+);
+
 export const Divider = ({ children = 'o con tu correo' }) => (
   <div className="my-6 flex items-center gap-4 text-sm text-muted">
     <span className="h-px flex-1 bg-line" />

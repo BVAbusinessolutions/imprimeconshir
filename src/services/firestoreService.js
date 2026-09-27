@@ -74,8 +74,8 @@ export const getAppointmentsByUser = (uid) => getByUser('appointments', uid);
 // ─── Perfil ───────────────────────────────────────────────────
 
 /** Solo los campos que firestore.rules permite editar al propio usuario. */
-export const updateUserProfile = (uid, { displayName, phone, address }) =>
-  updateDoc(doc(db, 'users', uid), { displayName, phone, address, updatedAt: serverTimestamp() });
+export const updateUserProfile = (uid, { displayName, phone, address, billing = null, marketingOptIn = false }) =>
+  updateDoc(doc(db, 'users', uid), { displayName, phone, address, billing, marketingOptIn: !!marketingOptIn, updatedAt: serverTimestamp() });
 
 export const getAllOrders = async (limitCount = 50) => {
   const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(limitCount));

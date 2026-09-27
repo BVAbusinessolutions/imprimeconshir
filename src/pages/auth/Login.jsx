@@ -8,7 +8,7 @@ import { loginSchema } from '../../schemas/validations';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/ui/Button';
 import Field from '../../components/ui/Field';
-import AuthCard, { Divider, GoogleButton } from '../../components/auth/AuthCard';
+import AuthCard, { Divider, GoogleButton, GoogleConsent } from '../../components/auth/AuthCard';
 import { authErrorMessage } from '../../components/auth/authErrors';
 
 const Login = () => {
@@ -72,6 +72,7 @@ const Login = () => {
       }
     >
       <GoogleButton onClick={() => run(loginWithGoogle, '¡Bienvenido!')} disabled={loading} />
+      <GoogleConsent />
       <Divider />
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
         <Field label="Correo electrónico" type="email" autoComplete="email" error={errors.email?.message} {...register('email')} />

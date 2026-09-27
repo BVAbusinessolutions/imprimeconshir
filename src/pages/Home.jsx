@@ -8,6 +8,7 @@ import VanGraphic from '../components/media/VanGraphic';
 import LogoMockupPreview from '../components/mockup/LogoMockupPreview';
 import { CATEGORIES } from '../data/categories';
 import { EXAMPLE_IMAGES } from '../data/exampleImages';
+import Testimonials from '../components/content/Testimonials';
 
 // Mosaico Fotobook: las imágenes de proyectos son las protagonistas.
 // Reemplaza las fotos de ejemplo por trabajos reales cuando estén disponibles.
@@ -77,6 +78,11 @@ const Home = () => (
           </div>
         ))}
       </Reveal>
+      <div className="mt-5 text-right">
+        <Link to="/proyectos" className="text-sm font-semibold underline-offset-4 hover:underline">
+          Ver todos los proyectos →
+        </Link>
+      </div>
     </section>
 
     {/* Categorías */}
@@ -139,6 +145,8 @@ const Home = () => (
         <LogoMockupPreview />
       </Reveal>
     </section>
+
+    <Testimonials />
 
     {/* Cierre */}
     <section className="mx-auto mt-28 max-w-7xl px-4 sm:px-6 lg:px-8">

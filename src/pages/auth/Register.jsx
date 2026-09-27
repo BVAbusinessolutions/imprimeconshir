@@ -8,8 +8,9 @@ import { registerSchema } from '../../schemas/validations';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/ui/Button';
 import Field from '../../components/ui/Field';
-import AuthCard, { Divider, GoogleButton } from '../../components/auth/AuthCard';
+import AuthCard, { Divider, GoogleButton, GoogleConsent } from '../../components/auth/AuthCard';
 import { authErrorMessage } from '../../components/auth/authErrors';
+import { ConsentFields } from '../../components/billing/BillingFields';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -40,7 +41,8 @@ const Register = () => {
     }
   };
 
-  const onSubmit = (data) => run(() => registerUser(data.email, data.password, data.displayName));
+  const onSubmit = (data) =>
+    run(() => registerUser(data.email, data.password, data.displayName, { marketingOptIn: !!data.marketingOptIn }));
 
   return (
     <AuthCard
@@ -56,6 +58,7 @@ const Register = () => {
       }
     >
       <GoogleButton onClick={() => run(loginWithGoogle)} disabled={loading} label="Registrarme con Google" />
+      <GoogleConsent />
       <Divider />
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
         <Field label="Nombre" autoComplete="name" error={errors.displayName?.message} {...register('displayName')} />
@@ -75,6 +78,7 @@ const Register = () => {
           error={errors.confirmPassword?.message}
           {...register('confirmPassword')}
         />
+        <ConsentFields register={register} errors={errors} />
         <Button type="submit" className="w-full" size="lg" disabled={loading}>
           {loading ? 'Creando cuenta…' : 'Crear cuenta'}
         </Button>

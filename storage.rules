@@ -30,6 +30,12 @@ service firebase.storage {
       allow write: if isAdmin() && isImage() && underMB(5);
     }
 
+    // Fotos del portafolio: públicas, solo el admin sube
+    match /projects/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage() && underMB(8);
+    }
+
     // Diseños y archivos para imprimir de cada cliente: carpeta privada por usuario
     match /designs/{uid}/{fileName} {
       allow read: if (isSignedIn() && request.auth.uid == uid) || isAdmin();

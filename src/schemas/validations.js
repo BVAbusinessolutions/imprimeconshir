@@ -1,5 +1,22 @@
 import { z } from 'zod';
 
+// ─── Consentimientos y facturación (CFDI) ─────────────────────
+
+/** Aceptación obligatoria del aviso de privacidad */
+const acceptPrivacy = z.literal(true, { message: 'Debes aceptar el aviso de privacidad' });
+
+// RFC de persona moral (12) o física (13): letras, fecha AAMMDD y homoclave
+const RFC_RE = /^([A-ZÑ&]{3,4})(\d{6})([A-Z\d]{3})$/;
+
+/** Datos fiscales para emitir CFDI 4.0 */
+export const billingSchema = z.object({
+  rfc: z.string().trim().toUpperCase().regex(RFC_RE, { message: 'RFC inválido' }),
+  legalName: z.string().trim().min(3, { message: 'Razón social tal como aparece en tu constancia' }),
+  taxRegime: z.string().min(3, { message: 'Elige tu régimen fiscal' }),
+  cfdiUse: z.string().min(3, { message: 'Elige el uso de CFDI' }),
+  zipCode: z.string().regex(/^\d{5}$/, { message: 'Código postal de 5 dígitos' }),
+});
+
 /** Validación de login */
 export const loginSchema = z.object({
   email: z.string().email({ message: 'Email no válido' }),
@@ -13,6 +30,8 @@ export const registerSchema = z
     email: z.string().email({ message: 'Email no válido' }),
     password: z.string().min(8, { message: 'Mínimo 8 caracteres' }),
     confirmPassword: z.string(),
+    acceptPrivacy,
+    marketingOptIn: z.boolean().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Las contraseñas no coinciden',
@@ -61,6 +80,17 @@ export const quoteSchema = z.object({
   deadline: z.string().optional(),
   notes: z.string().max(1000, { message: 'Máximo 1000 caracteres' }).optional(),
   contact: contactSchema,
+  wantsInvoice: z.boolean().optional(),
+  billing: z.any().optional(),
+  acceptPrivacy,
+  marketingOptIn: z.boolean().optional(),
+}).superRefine((data, ctx) => {
+  // Los datos fiscales solo se validan si el cliente pide factura
+  if (!data.wantsInvoice) return;
+  const result = billingSchema.safeParse(data.billing ?? {});
+  if (!result.success) {
+    for (const issue of result.error.issues) ctx.addIssue({ ...issue, path: ['billing', ...issue.path] });
+  }
 });
 
 /** Validación de la tarjeta para agendar cita técnica */
@@ -71,11 +101,22 @@ export const appointmentSchema = z.object({
 });
 
 /** Validación del perfil del cliente (campos editables según firestore.rules) */
-export const profileSchema = z.object({
-  displayName: z.string().min(2, { message: 'Nombre muy corto' }),
-  phone: phoneField.or(z.literal('')),
-  address: z.string().max(200, { message: 'Máximo 200 caracteres' }).optional(),
-});
+export const profileSchema = z
+  .object({
+    displayName: z.string().min(2, { message: 'Nombre muy corto' }),
+    phone: phoneField.or(z.literal('')),
+    address: z.string().max(200, { message: 'Máximo 200 caracteres' }).optional(),
+    marketingOptIn: z.boolean().optional(),
+    hasBilling: z.boolean().optional(),
+    billing: z.any().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.hasBilling) return;
+    const result = billingSchema.safeParse(data.billing ?? {});
+    if (!result.success) {
+      for (const issue of result.error.issues) ctx.addIssue({ ...issue, path: ['billing', ...issue.path] });
+    }
+  });
 
 /** Producto del catálogo (panel admin). El precio es "desde" y es opcional: el precio final se cotiza. */
 export const adminProductSchema = z.object({
@@ -139,4 +180,23 @@ export const inventoryItemSchema = z.object({
   minStock: z.coerce.number({ message: 'Mínimo inválido' }).nonnegative({ message: 'Mínimo inválido' }),
   location: z.string().optional(),
   supplierId: z.string().optional(),
+});
+
+/** Proyecto del portafolio */
+export const projectSchema = z.object({
+  title: z.string().min(3, { message: 'Título requerido' }),
+  category: z.string().min(1, { message: 'Elige una categoría' }),
+  subcategory: z.string().optional(),
+  client: z.string().optional(),
+  description: z.string().max(800, { message: 'Máximo 800 caracteres' }).optional(),
+  featured: z.boolean().optional(),
+});
+
+/** Testimonio de cliente (solo testimonios reales, con autorización del cliente) */
+export const testimonialSchema = z.object({
+  name: z.string().min(2, { message: 'Nombre requerido' }),
+  company: z.string().optional(),
+  text: z.string().min(10, { message: 'Muy corto' }).max(400, { message: 'Máximo 400 caracteres' }),
+  published: z.boolean().optional(),
+  featured: z.boolean().optional(),
 });

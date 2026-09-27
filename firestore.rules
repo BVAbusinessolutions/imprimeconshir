@@ -34,7 +34,7 @@ service cloud.firestore {
         && request.resource.data.role == 'customer';
 
       // El usuario puede editar sus datos, pero nunca su rol, uid ni fecha de alta
-      allow update: if (isOwner(uid) && changesOnly(['displayName', 'photoURL', 'phone', 'address', 'updatedAt']))
+      allow update: if (isOwner(uid) && changesOnly(['displayName', 'photoURL', 'phone', 'address', 'billing', 'marketingOptIn', 'privacyAcceptedAt', 'updatedAt']))
         || isAdmin();
 
       allow delete: if isAdmin();
@@ -44,6 +44,17 @@ service cloud.firestore {
     match /products/{productId} {
       allow read: if true;
       allow create, update, delete: if isAdmin();
+    }
+
+    // Portafolio y testimonios: públicos para leer, solo el admin los publica
+    match /projects/{projectId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /testimonials/{testimonialId} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow write: if isAdmin();
     }
 
     // ─── Pedidos ────────────────────────────────────────────────

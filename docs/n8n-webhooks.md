@@ -123,6 +123,8 @@ Responde en menos de ~30 s (la web espera 45 s y reintenta una vez ante errores 
 - `category`/`subcategory` usan los `slug` de `src/data/categories.js`.
 - `width`/`height` pueden faltar (trabajos por pieza). `deadline`, `notes` y `files` son opcionales.
 - `files` solo llega con sesión iniciada; son URLs de Firebase Storage (`designs/{uid}/…`).
+- `wantsInvoice` + `billing` (`rfc`, `legalName`, `taxRegime`, `cfdiUse`, `zipCode`) cuando el cliente pide factura (CFDI 4.0); si no, `billing` es `null`.
+- `privacyAcceptedAt` (ISO) y `marketingOptIn` (boolean): consentimiento del aviso de privacidad y de promociones. Guardarlos junto con la cotización.
 
 ### Respuesta: pre-cotización
 

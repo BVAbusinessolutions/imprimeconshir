@@ -16,6 +16,7 @@ import { n8nErrorMessage, requestQuote } from '../services/n8n';
 import { uploadFile } from '../firebase/storageService';
 import { useAuth } from '../context/AuthContext';
 import { useProduct } from '../hooks/useProducts';
+import BillingFields, { ConsentFields } from '../components/billing/BillingFields';
 import useChatStore from '../store/chatStore';
 
 // Formatos del previsualizador de logo → categoría/subcategoría del catálogo
@@ -83,7 +84,11 @@ const FileDrop = ({ files, setFiles, disabled }) => {
 const Quote = () => {
   const [searchParams] = useSearchParams();
   const productId = searchParams.get('producto');
-  const [presetCategory, presetSub] = FORMAT_PRESETS[searchParams.get('formato')] ?? [];
+  // Preselección: ?formato= (Prueba tu logo) o ?categoria=&sub= (Proyectos, catálogo)
+  const fromCategory = getCategory(searchParams.get('categoria'));
+  const [presetCategory, presetSub] = fromCategory
+    ? [fromCategory.slug, fromCategory.subcategories.some((s) => s.slug === searchParams.get('sub')) ? searchParams.get('sub') : undefined]
+    : FORMAT_PRESETS[searchParams.get('formato')] ?? [];
 
   const { currentUser, userProfile } = useAuth();
   const { data: product } = useProduct(productId);
@@ -118,6 +123,10 @@ const Quote = () => {
         email: currentUser?.email ?? '',
         phone: userProfile?.phone ?? '',
       },
+      wantsInvoice: false,
+      billing: userProfile?.billing ?? { rfc: '', legalName: '', taxRegime: '', cfdiUse: 'G03', zipCode: '' },
+      acceptPrivacy: !!userProfile?.privacyAcceptedAt,
+      marketingOptIn: !!userProfile?.marketingOptIn,
     },
   });
 
@@ -129,6 +138,7 @@ const Quote = () => {
   }, [product, setValue]);
 
   const category = getCategory(useWatch({ control, name: 'category' }));
+  const wantsInvoice = useWatch({ control, name: 'wantsInvoice' });
 
   const onSubmit = async (values) => {
     setServerError('');
@@ -145,8 +155,11 @@ const Quote = () => {
         setUploadProgress(null);
       }
 
+      const { billing, acceptPrivacy: _accepted, ...rest } = values;
       const res = await requestQuote({
-        ...values,
+        ...rest,
+        billing: values.wantsInvoice ? billing : null,
+        privacyAcceptedAt: new Date().toISOString(),
         productId: productId ?? null,
         productName: product?.name ?? null,
         files: uploaded,
@@ -268,7 +281,14 @@ const Quote = () => {
                   <Field label="Email" type="email" autoComplete="email" error={errors.contact?.email?.message} {...register('contact.email')} />
                   <Field label="Teléfono" type="tel" autoComplete="tel" error={errors.contact?.phone?.message} {...register('contact.phone')} />
                 </div>
+                <label className="flex items-center gap-2.5 pt-2 text-sm font-medium">
+                  <input type="checkbox" className="h-4 w-4 accent-accent" {...register('wantsInvoice')} />
+                  Requiero factura (CFDI)
+                </label>
+                {wantsInvoice && <BillingFields register={register} errors={errors} />}
               </fieldset>
+
+              <ConsentFields register={register} errors={errors} />
 
               {serverError && (
                 <p role="alert" className="text-sm text-accent">

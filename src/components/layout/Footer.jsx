@@ -3,6 +3,16 @@ import Logo from '../brand/Logo';
 import { CATEGORIES } from '../../data/categories';
 import { usePublicSettings } from '../../hooks/useSettings';
 
+const SERVICE_LINKS = [
+  ['/cotizar', 'Solicitar cotización'],
+  ['/proyectos', 'Proyectos'],
+  ['/previsualizar', 'Prueba tu logo'],
+  ['/guia-de-archivos', 'Guía de archivos'],
+  ['/preguntas-frecuentes', 'Preguntas frecuentes'],
+  ['/nosotros', 'Nosotros y contacto'],
+  ['/mis-pedidos', 'Mis pedidos'],
+];
+
 const SOCIALS = [
   ['facebook', 'Facebook'],
   ['instagram', 'Instagram'],
@@ -73,29 +83,29 @@ const Footer = () => (
       <nav aria-label="Servicio">
         <p className="text-xs font-semibold tracking-[0.18em] text-muted uppercase">Servicio</p>
         <ul className="mt-4 space-y-2.5 text-sm">
-          <li>
-            <Link to="/cotizar" className="hover:text-accent">
-              Solicitar cotización
-            </Link>
-          </li>
-          <li>
-            <Link to="/previsualizar" className="hover:text-accent">
-              Prueba tu logo
-            </Link>
-          </li>
-          <li>
-            <Link to="/mis-pedidos" className="hover:text-accent">
-              Mis pedidos
-            </Link>
-          </li>
+          {SERVICE_LINKS.map(([to, label]) => (
+            <li key={to}>
+              <Link to={to} className="hover:text-accent">
+                {label}
+              </Link>
+            </li>
+          ))}
         </ul>
       </nav>
     </div>
 
     <div className="border-t border-line">
-      <p className="mx-auto max-w-7xl px-4 py-6 text-xs text-muted sm:px-6 lg:px-8">
-        © {new Date().getFullYear()} IMPRIME con SHIR. Todos los derechos reservados.
-      </p>
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-6 text-xs text-muted sm:px-6 lg:px-8">
+        <p>© {new Date().getFullYear()} IMPRIME con SHIR. Todos los derechos reservados.</p>
+        <p className="flex gap-4">
+          <Link to="/aviso-de-privacidad" className="hover:text-ink">
+            Aviso de privacidad
+          </Link>
+          <Link to="/terminos" className="hover:text-ink">
+            Términos y condiciones
+          </Link>
+        </p>
+      </div>
     </div>
   </footer>
 );

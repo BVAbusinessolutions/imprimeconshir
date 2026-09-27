@@ -28,6 +28,14 @@ const AdminInventory = lazy(() => import('../pages/admin/Inventory'));
 const AdminPlanning  = lazy(() => import('../pages/admin/Planning'));
 const AdminEmails    = lazy(() => import('../pages/admin/Emails'));
 const AdminSettings  = lazy(() => import('../pages/admin/Settings'));
+const Projects    = lazy(() => import('../pages/Projects'));
+const FilesGuide  = lazy(() => import('../pages/FilesGuide'));
+const Faq         = lazy(() => import('../pages/Faq'));
+const About       = lazy(() => import('../pages/About'));
+const Privacy     = lazy(() => import('../pages/legal/Privacy'));
+const Terms       = lazy(() => import('../pages/legal/Terms'));
+const AdminClients   = lazy(() => import('../pages/admin/Clients'));
+const AdminPortfolio = lazy(() => import('../pages/admin/Portfolio'));
 const NotFound    = lazy(() => import('../pages/NotFound'));
 
 const AppRouter = () => (
@@ -45,6 +53,12 @@ const AppRouter = () => (
         <Route path="/carrito" element={<Cart />} />
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Register />} />
+        <Route path="/proyectos" element={<Projects />} />
+        <Route path="/guia-de-archivos" element={<FilesGuide />} />
+        <Route path="/preguntas-frecuentes" element={<Faq />} />
+        <Route path="/nosotros" element={<About />} />
+        <Route path="/aviso-de-privacidad" element={<Privacy />} />
+        <Route path="/terminos" element={<Terms />} />
 
         {/* Privadas (usuario autenticado) */}
         <Route element={<PrivateRoute />}>
@@ -68,6 +82,8 @@ const AppRouter = () => (
             <Route path="planeacion" element={<AdminPlanning />} />
             <Route path="correos" element={<AdminEmails />} />
             <Route path="configuracion" element={<AdminSettings />} />
+            <Route path="clientes" element={<AdminClients />} />
+            <Route path="portafolio" element={<AdminPortfolio />} />
           </Route>
         </Route>
 

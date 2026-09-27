@@ -15,7 +15,7 @@ const googleProvider = new GoogleAuthProvider();
 /**
  * Registra un nuevo usuario con email y contraseña y crea su perfil en Firestore.
  */
-export const registerUser = async (email, password, displayName) => {
+export const registerUser = async (email, password, displayName, { marketingOptIn = false } = {}) => {
   const { user } = await createUserWithEmailAndPassword(auth, email, password);
   await updateProfile(user, { displayName });
   await setDoc(doc(db, 'users', user.uid), {
@@ -23,6 +23,8 @@ export const registerUser = async (email, password, displayName) => {
     email,
     displayName,
     role: 'customer', // Roles: 'customer' | 'admin'
+    marketingOptIn: !!marketingOptIn,
+    privacyAcceptedAt: serverTimestamp(),
     createdAt: serverTimestamp(),
   });
   return user;
@@ -51,6 +53,9 @@ export const loginWithGoogle = async () => {
       displayName: user.displayName,
       photoURL: user.photoURL,
       role: 'customer',
+      marketingOptIn: false,
+      // Las pantallas de acceso con Google indican que continuar implica aceptar el aviso de privacidad
+      privacyAcceptedAt: serverTimestamp(),
       createdAt: serverTimestamp(),
     });
   }

@@ -49,6 +49,9 @@ const Navbar = () => {
         <Logo />
 
         <nav aria-label="Utilidades" className="hidden items-center gap-7 md:flex">
+          <NavLink to="/proyectos" className={utilityLinkClass}>
+            Proyectos
+          </NavLink>
           <NavLink to="/previsualizar" className={utilityLinkClass}>
             Prueba tu logo
           </NavLink>
@@ -113,6 +116,9 @@ const Navbar = () => {
                 </NavLink>
               ))}
               <div className="mt-4 flex flex-col gap-3 border-t border-line pt-4">
+                <NavLink to="/proyectos" className={utilityLinkClass}>
+                  Proyectos
+                </NavLink>
                 <NavLink to="/previsualizar" className={utilityLinkClass}>
                   Prueba tu logo
                 </NavLink>

@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import ChatWidget from '../chat/ChatWidget';
+import SeoDefaults from './SeoDefaults';
 
 // Indicador de carga mientras llega el código de cada página (lazy)
 const PageLoader = () => (
@@ -27,6 +28,7 @@ const Layout = () => {
       >
         Saltar al contenido
       </a>
+      <SeoDefaults />
       <Navbar />
       <main id="contenido" className="flex-1">
         <Suspense fallback={<PageLoader />}>

@@ -39,7 +39,17 @@ Lo que necesito de ti (o de Shirlene) para terminar. Marca con `[x]` lo que ya e
 - [ ] En la misma pantalla: **correo para alertas** (inventario bajo y margen bajo) y **margen mínimo** aceptable (hoy 25 %).
 - [ ] **Inventario inicial**: cargar los insumos con su existencia y mínimo en *Admin → Inventario*.
 
-## 4. Seguridad antes de publicar
+## 4. Legal, contenido y publicación
+
+- [ ] **Datos del responsable** para el aviso de privacidad y términos: nombre completo o razón social de Shirlene () y un correo para temas de privacidad (se toma de *Configuración*).
+- [ ] **Revisión legal**: que un abogado revise *Aviso de privacidad* y *Términos y condiciones* (son un borrador base, no asesoría legal). Confirmar anticipo, vigencia de cotizaciones y garantía reales.
+- [ ] **Respuestas de Preguntas frecuentes** ajustadas a sus políticas reales ().
+- [ ] **Proyectos reales** con fotos (y antes/después si tienen) en *Admin → Portafolio*.
+- [ ] **Testimonios reales**, con permiso de cada cliente, en *Admin → Portafolio → Testimonios*.
+- [ ] **URL del sitio** en :  (genera sitemap y URL canónica).
+- [ ] **Publicar**:  (build + Firebase Hosting) y conectar el dominio en *Firebase Console → Hosting*.
+
+## 5. Seguridad antes de publicar
 
 - [ ] En el nodo *Webhook Principal* de n8n, cambiar *Allowed Origins (CORS)* de `*` al dominio real.
 - [x] ~~Verificar en n8n que las acciones del panel las haga un admin~~ → resuelto en el workflow (nodo *Verificar admin*), no requiere configurar nada.

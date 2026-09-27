@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { updateProfile } from 'firebase/auth';
 import { toast } from 'react-toastify';
@@ -10,6 +10,7 @@ import { useAuth } from '../../context/AuthContext';
 import { logoutUser } from '../../firebase/authService';
 import { updateUserProfile } from '../../services/firestoreService';
 import { profileSchema } from '../../schemas/validations';
+import BillingFields from '../../components/billing/BillingFields';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -20,18 +21,23 @@ const Profile = () => {
     handleSubmit,
     formState: { errors, isSubmitting, isDirty },
     reset,
+    control,
   } = useForm({
     resolver: zodResolver(profileSchema),
     values: {
       displayName: userProfile?.displayName ?? currentUser?.displayName ?? '',
       phone: userProfile?.phone ?? '',
       address: userProfile?.address ?? '',
+      marketingOptIn: !!userProfile?.marketingOptIn,
+      hasBilling: !!userProfile?.billing,
+      billing: userProfile?.billing ?? { rfc: '', legalName: '', taxRegime: '', cfdiUse: 'G03', zipCode: '' },
     },
   });
+  const hasBilling = useWatch({ control, name: 'hasBilling' });
 
   const onSubmit = async (values) => {
     try {
-      await updateUserProfile(currentUser.uid, values);
+      await updateUserProfile(currentUser.uid, { ...values, billing: values.hasBilling ? values.billing : null });
       if (values.displayName !== currentUser.displayName) {
         await updateProfile(currentUser, { displayName: values.displayName });
       }
@@ -69,6 +75,18 @@ const Profile = () => {
             error={errors.address?.message}
             {...register('address')}
           />
+          <fieldset className="space-y-4 border-t border-line pt-5">
+            <legend className="sr-only">Facturación</legend>
+            <label className="flex items-center gap-2.5 text-sm font-medium">
+              <input type="checkbox" className="h-4 w-4 accent-accent" {...register('hasBilling')} />
+              Guardar mis datos de facturación (CFDI)
+            </label>
+            {hasBilling && <BillingFields register={register} errors={errors} />}
+          </fieldset>
+          <label className="flex items-center gap-2.5 border-t border-line pt-5 text-sm">
+            <input type="checkbox" className="h-4 w-4 accent-accent" {...register('marketingOptIn')} />
+            Quiero recibir promociones y novedades
+          </label>
           <Button type="submit" disabled={isSubmitting || !isDirty}>
             {isSubmitting ? 'Guardando…' : 'Guardar cambios'}
           </Button>

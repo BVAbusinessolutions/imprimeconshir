@@ -5,8 +5,10 @@ import { Helmet } from 'react-helmet-async';
 const SECTIONS = [
   { to: '/admin', label: 'Resumen', end: true },
   { to: '/admin/pedidos', label: 'Cotizaciones y pedidos' },
+  { to: '/admin/clientes', label: 'Clientes' },
   { to: '/admin/citas', label: 'Citas técnicas' },
   { to: '/admin/productos', label: 'Productos' },
+  { to: '/admin/portafolio', label: 'Portafolio' },
   { to: '/admin/inventario', label: 'Inventario' },
   { to: '/admin/proveedores', label: 'Proveedores' },
   { to: '/admin/logistica', label: 'Logística' },
