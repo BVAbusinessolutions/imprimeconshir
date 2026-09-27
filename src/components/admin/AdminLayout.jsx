@@ -15,6 +15,7 @@ const SECTIONS = [
   { to: '/admin/finanzas', label: 'Finanzas' },
   { to: '/admin/planeacion', label: 'Planeación' },
   { to: '/admin/correos', label: 'Correos' },
+  { to: '/admin/usuarios', label: 'Usuarios' },
   { to: '/admin/configuracion', label: 'Configuración' },
 ];
 

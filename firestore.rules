@@ -35,7 +35,8 @@ service cloud.firestore {
 
       // El usuario puede editar sus datos, pero nunca su rol, uid ni fecha de alta
       allow update: if (isOwner(uid) && changesOnly(['displayName', 'photoURL', 'phone', 'address', 'billing', 'marketingOptIn', 'privacyAcceptedAt', 'updatedAt']))
-        || isAdmin();
+        // Un admin puede cambiar roles de otros, pero nunca quitarse el rol a sí mismo
+        || (isAdmin() && !(isOwner(uid) && request.resource.data.role != 'admin'));
 
       allow delete: if isAdmin();
     }

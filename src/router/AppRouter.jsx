@@ -36,6 +36,7 @@ const Privacy     = lazy(() => import('../pages/legal/Privacy'));
 const Terms       = lazy(() => import('../pages/legal/Terms'));
 const AdminClients   = lazy(() => import('../pages/admin/Clients'));
 const AdminPortfolio = lazy(() => import('../pages/admin/Portfolio'));
+const AdminUsers     = lazy(() => import('../pages/admin/Users'));
 const NotFound    = lazy(() => import('../pages/NotFound'));
 
 const AppRouter = () => (
@@ -84,6 +85,7 @@ const AppRouter = () => (
             <Route path="configuracion" element={<AdminSettings />} />
             <Route path="clientes" element={<AdminClients />} />
             <Route path="portafolio" element={<AdminPortfolio />} />
+            <Route path="usuarios" element={<AdminUsers />} />
           </Route>
         </Route>
 
