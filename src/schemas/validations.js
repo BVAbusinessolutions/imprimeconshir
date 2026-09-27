@@ -69,3 +69,10 @@ export const appointmentSchema = z.object({
   address: z.string().min(10, { message: 'Dirección demasiado corta' }),
   contact: contactSchema,
 });
+
+/** Validación del perfil del cliente (campos editables según firestore.rules) */
+export const profileSchema = z.object({
+  displayName: z.string().min(2, { message: 'Nombre muy corto' }),
+  phone: phoneField.or(z.literal('')),
+  address: z.string().max(200, { message: 'Máximo 200 caracteres' }).optional(),
+});

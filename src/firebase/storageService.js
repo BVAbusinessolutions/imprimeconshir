@@ -1,6 +1,8 @@
-import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
-import { storage } from './config';
+import app from './config';
+
+const storage = getStorage(app);
 
 /**
  * Sube un archivo al Firebase Storage con seguimiento de progreso.

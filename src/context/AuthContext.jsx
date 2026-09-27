@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
 
 const AuthContext = createContext(null);
@@ -11,25 +11,38 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    let unsubscribeProfile = () => {};
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      unsubscribeProfile();
       setCurrentUser(user);
-      try {
-        if (user) {
-          // Cargar perfil extendido desde Firestore
-          const profileSnap = await getDoc(doc(db, 'users', user.uid));
-          setUserProfile(profileSnap.exists() ? profileSnap.data() : null);
-        } else {
-          setUserProfile(null);
-        }
-      } catch (error) {
-        console.error('No se pudo cargar el perfil del usuario:', error);
+
+      if (!user) {
         setUserProfile(null);
-      } finally {
         setLoading(false);
+        return;
       }
+
+      // Perfil en tiempo real: al registrarse, el documento se crea justo después del alta en Auth,
+      // y así también se reflejan al instante los cambios de perfil o de rol.
+      unsubscribeProfile = onSnapshot(
+        doc(db, 'users', user.uid),
+        (snap) => {
+          setUserProfile(snap.exists() ? snap.data() : null);
+          setLoading(false);
+        },
+        (error) => {
+          console.error('No se pudo cargar el perfil del usuario:', error);
+          setUserProfile(null);
+          setLoading(false);
+        }
+      );
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribeProfile();
+      unsubscribeAuth();
+    };
   }, []);
 
   const isAdmin = userProfile?.role === 'admin';

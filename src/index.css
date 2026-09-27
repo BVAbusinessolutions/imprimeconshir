@@ -46,3 +46,11 @@
     scroll-behavior: auto;
   }
 }
+
+/* Filas deslizables horizontalmente (chips, categorías) sin barra visible */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

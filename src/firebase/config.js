@@ -1,8 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
-import { getAnalytics, isSupported } from 'firebase/analytics';
 
 // Los valores se leen de .env (ver .env.example)
 const firebaseConfig = {
@@ -19,10 +17,13 @@ const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const storage = getStorage(app);
+// Storage se inicializa en storageService.js y Analytics se carga en diferido,
+// para que no formen parte del paquete inicial de la web.
 // Analytics no está disponible en todos los entornos (algunos navegadores, bloqueadores, dev sin measurementId)
-export const analyticsPromise = isSupported()
-  .then((supported) => (supported && firebaseConfig.measurementId ? getAnalytics(app) : null))
-  .catch(() => null);
+export const analyticsPromise = firebaseConfig.measurementId
+  ? import('firebase/analytics')
+      .then(async ({ getAnalytics, isSupported }) => ((await isSupported()) ? getAnalytics(app) : null))
+      .catch(() => null)
+  : Promise.resolve(null);
 
 export default app;

@@ -31,3 +31,7 @@ dist-ssr
 # Local env files
 .env.local
 .env
+
+# Credenciales de servicio de Firebase/Google: nunca al repositorio
+*-firebase-adminsdk-*.json
+serviceAccount*.json

@@ -54,15 +54,28 @@ export const createOrder = async (orderData) => {
   });
 };
 
-export const getOrdersByUser = async (uid) => {
-  const q = query(
-    collection(db, 'orders'),
-    where('userId', '==', uid),
-    orderBy('createdAt', 'desc')
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+const byNewest = (a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0);
+
+/**
+ * Documentos de una colección que pertenecen a un usuario, del más reciente al más antiguo.
+ * Se ordena en el cliente para no requerir índices compuestos (userId + createdAt).
+ */
+const getByUser = async (collectionName, uid) => {
+  const snap = await getDocs(query(collection(db, collectionName), where('userId', '==', uid)));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort(byNewest);
 };
+
+export const getOrdersByUser = (uid) => getByUser('orders', uid);
+
+// Cotizaciones y citas las escribe n8n (cuenta de servicio); el cliente solo las lee.
+export const getQuotesByUser = (uid) => getByUser('quotes', uid);
+export const getAppointmentsByUser = (uid) => getByUser('appointments', uid);
+
+// ─── Perfil ───────────────────────────────────────────────────
+
+/** Solo los campos que firestore.rules permite editar al propio usuario. */
+export const updateUserProfile = (uid, { displayName, phone, address }) =>
+  updateDoc(doc(db, 'users', uid), { displayName, phone, address, updatedAt: serverTimestamp() });
 
 export const getAllOrders = async (limitCount = 50) => {
   const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(limitCount));

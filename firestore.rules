@@ -60,6 +60,19 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    // ─── Cotizaciones y citas ───────────────────────────────────
+    // Las crea n8n con una cuenta de servicio (que no pasa por estas reglas).
+    // El cliente solo puede leer las suyas; el admin gestiona todas.
+    match /quotes/{quoteId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow write: if isAdmin();
+    }
+
+    match /appointments/{appointmentId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow write: if isAdmin();
+    }
+
     // Cualquier otra colección queda cerrada por defecto
     match /{document=**} {
       allow read, write: if false;

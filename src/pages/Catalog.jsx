@@ -65,7 +65,7 @@ const CategoryView = ({ category }) => {
 
   return (
     <>
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label="Filtrar por tipo">
+      <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label="Filtrar por tipo">
         <button type="button" aria-pressed={!activeSub} onClick={() => setSub(null)} className={chipClass(!activeSub)}>
           Todo
         </button>

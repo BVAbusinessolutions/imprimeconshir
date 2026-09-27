@@ -1,114 +1,89 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-toastify';
-import { loginUser, loginWithGoogle } from '../../firebase/authService';
+import { loginUser, loginWithGoogle, resetPassword } from '../../firebase/authService';
 import { loginSchema } from '../../schemas/validations';
+import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/ui/Button';
+import Field from '../../components/ui/Field';
+import AuthCard, { Divider, GoogleButton } from '../../components/auth/AuthCard';
+import { authErrorMessage } from '../../components/auth/authErrors';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { currentUser } = useAuth();
   const [loading, setLoading] = useState(false);
+  // Volver a la página protegida desde la que se llegó (ver ProtectedRoute)
+  const redirectTo = location.state?.from?.pathname ?? '/perfil';
 
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors },
-  } = useForm({
-    resolver: zodResolver(loginSchema),
-  });
+  } = useForm({ resolver: zodResolver(loginSchema) });
 
-  const onSubmit = async (data) => {
+  if (currentUser) return <Navigate to={redirectTo} replace />;
+
+  const run = async (action, successMessage) => {
     try {
       setLoading(true);
-      await loginUser(data.email, data.password);
-      toast.success('¡Bienvenido de vuelta!');
-      navigate('/perfil');
+      await action();
+      toast.success(successMessage);
+      navigate(redirectTo, { replace: true });
     } catch (error) {
       console.error(error);
-      toast.error('Credenciales incorrectas. Intenta de nuevo.');
+      toast.error(authErrorMessage(error));
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const onSubmit = (data) => run(() => loginUser(data.email, data.password), '¡Bienvenido de vuelta!');
+
+  const handleReset = async () => {
+    const email = getValues('email');
+    if (!email) {
+      toast.info('Escribe tu correo arriba y vuelve a tocar "Olvidé mi contraseña".');
+      return;
+    }
     try {
-      setLoading(true);
-      await loginWithGoogle();
-      toast.success('¡Bienvenido con Google!');
-      navigate('/perfil');
+      await resetPassword(email);
+      toast.success('Si el correo está registrado, te enviamos un enlace para restablecerla.');
     } catch (error) {
-      console.error(error);
-      toast.error('Error al iniciar sesión con Google.');
-    } finally {
-      setLoading(false);
+      toast.error(authErrorMessage(error));
     }
   };
 
   return (
-    <div className="flex min-h-[80vh] items-center justify-center px-4">
-      <Helmet>
-        <title>Iniciar Sesión | IMPRIME con SHIR</title>
-      </Helmet>
-
-      <div className="w-full max-w-md rounded-3xl bg-surface p-8 shadow-xl">
-        <h1 className="mb-6 text-center text-3xl font-extrabold text-ink">
-          Ingresa a tu cuenta
-        </h1>
-
-        <button
-          onClick={handleGoogleLogin}
-          disabled={loading}
-          className="mb-6 flex w-full items-center justify-center gap-3 rounded-full border border-line bg-white py-3 font-semibold text-ink transition-colors hover:bg-gray-50 disabled:opacity-50"
-        >
-          <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="h-5 w-5" />
-          Continuar con Google
-        </button>
-
-        <div className="relative mb-6 flex items-center py-2">
-          <div className="flex-grow border-t border-line"></div>
-          <span className="mx-4 text-sm text-muted">O con tu correo</span>
-          <div className="flex-grow border-t border-line"></div>
-        </div>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-ink">Correo electrónico</label>
-            <input
-              {...register('email')}
-              className="w-full rounded-xl border border-line bg-white px-4 py-3 text-ink focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-              placeholder="tu@correo.com"
-            />
-            {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>}
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-ink">Contraseña</label>
-            <input
-              type="password"
-              {...register('password')}
-              className="w-full rounded-xl border border-line bg-white px-4 py-3 text-ink focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-              placeholder="••••••••"
-            />
-            {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password.message}</p>}
-          </div>
-
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Cargando...' : 'Iniciar Sesión'}
-          </Button>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-muted">
+    <AuthCard
+      title="Iniciar sesión"
+      heading="Ingresa a tu cuenta"
+      footer={
+        <>
           ¿No tienes cuenta?{' '}
-          <Link to="/registro" className="font-semibold text-accent hover:underline">
-            Regístrate aquí
+          <Link to="/registro" state={location.state} className="font-semibold text-ink underline underline-offset-4">
+            Regístrate
           </Link>
-        </p>
-      </div>
-    </div>
+        </>
+      }
+    >
+      <GoogleButton onClick={() => run(loginWithGoogle, '¡Bienvenido!')} disabled={loading} />
+      <Divider />
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+        <Field label="Correo electrónico" type="email" autoComplete="email" error={errors.email?.message} {...register('email')} />
+        <Field label="Contraseña" type="password" autoComplete="current-password" error={errors.password?.message} {...register('password')} />
+        <button type="button" onClick={handleReset} className="text-sm font-medium text-muted hover:text-ink">
+          Olvidé mi contraseña
+        </button>
+        <Button type="submit" className="w-full" size="lg" disabled={loading}>
+          {loading ? 'Entrando…' : 'Iniciar sesión'}
+        </Button>
+      </form>
+    </AuthCard>
   );
 };
 

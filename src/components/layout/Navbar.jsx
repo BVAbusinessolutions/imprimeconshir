@@ -76,7 +76,7 @@ const Navbar = () => {
 
       {/* Categorías principales del catálogo */}
       <nav aria-label="Categorías" className="hidden border-t border-line/70 md:block">
-        <div className="mx-auto flex max-w-7xl gap-8 overflow-x-auto px-4 sm:px-6 lg:px-8">
+        <div className="no-scrollbar mx-auto flex max-w-7xl gap-8 overflow-x-auto px-4 sm:px-6 lg:px-8">
           <NavLink to="/catalogo" end className={categoryLinkClass}>
             Todo
           </NavLink>
