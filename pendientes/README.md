@@ -41,13 +41,13 @@ Lo que necesito de ti (o de Shirlene) para terminar. Marca con `[x]` lo que ya e
 
 ## 4. Legal, contenido y publicación
 
-- [ ] **Datos del responsable** para el aviso de privacidad y términos: nombre completo o razón social de Shirlene () y un correo para temas de privacidad (se toma de *Configuración*).
+- [ ] **Datos del responsable** para el aviso de privacidad y términos: nombre completo o razón social de Shirlene (`src/data/legal.js`) y un correo para temas de privacidad (se toma de *Configuración*).
 - [ ] **Revisión legal**: que un abogado revise *Aviso de privacidad* y *Términos y condiciones* (son un borrador base, no asesoría legal). Confirmar anticipo, vigencia de cotizaciones y garantía reales.
-- [ ] **Respuestas de Preguntas frecuentes** ajustadas a sus políticas reales ().
+- [ ] **Respuestas de Preguntas frecuentes** ajustadas a sus políticas reales (`src/pages/Faq.jsx`).
 - [ ] **Proyectos reales** con fotos (y antes/después si tienen) en *Admin → Portafolio*.
 - [ ] **Testimonios reales**, con permiso de cada cliente, en *Admin → Portafolio → Testimonios*.
-- [ ] **URL del sitio** en :  (genera sitemap y URL canónica).
-- [ ] **Publicar**:  (build + Firebase Hosting) y conectar el dominio en *Firebase Console → Hosting*.
+- [ ] **URL del sitio** en `.env.local`: `VITE_SITE_URL=https://tudominio.com` (genera sitemap y URL canónica).
+- [ ] **Publicar**: `npm run deploy` (build + Firebase Hosting) y conectar el dominio en *Firebase Console → Hosting*.
 
 ## 5. Seguridad antes de publicar
 
