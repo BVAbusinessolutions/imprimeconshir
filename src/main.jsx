@@ -39,7 +39,7 @@ createRoot(document.getElementById('root')).render(
             />
           </AuthProvider>
           {/* Dev tools solo en desarrollo */}
-          <ReactQueryDevtools initialIsOpen={false} />
+          <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
         </QueryClientProvider>
       </HelmetProvider>
     </ErrorBoundary>

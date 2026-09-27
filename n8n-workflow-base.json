@@ -1,0 +1,135 @@
+{
+  "name": "Imprime con SHIR - Recepción Web",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "imprimeconshir",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "22ff6b7e-9273-45a8-a5c9-95e54d5883d6",
+      "name": "Webhook Principal",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "imprimeconshir-webhook-1234"
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.body.action }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "cotizar",
+              "outputKey": "Cotizacion"
+            },
+            {
+              "value2": "chat",
+              "outputKey": "Chat IA"
+            }
+          ]
+        },
+        "fallbackOutput": 0
+      },
+      "id": "673f40d5-5386-455b-b997-6a18d103328f",
+      "name": "Switch Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        480,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "success"
+            },
+            {
+              "name": "message",
+              "value": "¡Cotización recibida en n8n!"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "893d56b8-07de-49c0-9d10-ef54c8636f32",
+      "name": "Respuesta Cotización",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        780,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "success"
+            },
+            {
+              "name": "reply",
+              "value": "Hola, soy el asistente en n8n. ¿En qué te ayudo?"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4d168516-e416-46c5-9271-9de0fdb5fdbb",
+      "name": "Respuesta Chat",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        780,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Principal": {
+      "main": [
+        [
+          {
+            "node": "Switch Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Router": {
+      "main": [
+        [
+          {
+            "node": "Respuesta Cotización",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respuesta Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

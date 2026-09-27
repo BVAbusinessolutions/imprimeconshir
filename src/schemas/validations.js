@@ -36,3 +36,36 @@ export const checkoutSchema = z.object({
   city: z.string().min(2, { message: 'Ciudad requerida' }),
   notes: z.string().optional(),
 });
+
+// Medida opcional: un campo vacío se trata como "sin medida"
+const optionalMeasure = (message) =>
+  z.preprocess((v) => (v === '' || v == null ? undefined : v), z.coerce.number().positive({ message }).optional());
+
+const phoneField = z.string().regex(/^\+?\d{10,15}$/, { message: 'Teléfono de 10 a 15 dígitos' });
+
+/** Datos de contacto compartidos por cotización y cita */
+export const contactSchema = z.object({
+  name: z.string().min(2, { message: 'Tu nombre' }),
+  email: z.string().email({ message: 'Email no válido' }),
+  phone: phoneField,
+});
+
+/** Validación del formulario de pre-cotización (se envía a n8n) */
+export const quoteSchema = z.object({
+  category: z.string().min(1, { message: 'Elige una categoría' }),
+  subcategory: z.string().min(1, { message: 'Elige un tipo de trabajo' }),
+  width: optionalMeasure('Ancho inválido'),
+  height: optionalMeasure('Alto inválido'),
+  unit: z.enum(['cm', 'm']),
+  quantity: z.coerce.number().int().min(1, { message: 'Mínimo 1' }),
+  deadline: z.string().optional(),
+  notes: z.string().max(1000, { message: 'Máximo 1000 caracteres' }).optional(),
+  contact: contactSchema,
+});
+
+/** Validación de la tarjeta para agendar cita técnica */
+export const appointmentSchema = z.object({
+  slot: z.string().min(1, { message: 'Elige un horario' }),
+  address: z.string().min(10, { message: 'Dirección demasiado corta' }),
+  contact: contactSchema,
+});

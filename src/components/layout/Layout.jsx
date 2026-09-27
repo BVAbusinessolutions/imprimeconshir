@@ -2,6 +2,7 @@ import { Suspense, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import ChatWidget from '../chat/ChatWidget';
 
 // Indicador de carga mientras llega el código de cada página (lazy)
 const PageLoader = () => (
@@ -33,6 +34,7 @@ const Layout = () => {
         </Suspense>
       </main>
       <Footer />
+      <ChatWidget />
     </div>
   );
 };
