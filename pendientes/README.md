@@ -14,7 +14,7 @@ Lo que necesito de ti (o de Shirlene) para terminar. Marca con `[x]` lo que ya e
   - Carpeta: `pendientes/fotos/`.
   - Reemplazan las fotos de ejemplo de `src/data/exampleImages.js`. **Varias de las fotos de ejemplo muestran marcas o textos de terceros; hay que cambiarlas antes de publicar.**
 - [ ] **Datos de contacto para el pie de página**: teléfono, correo, dirección, horario y redes sociales. Captúralos tú mismo en *Admin → Configuración → Contacto público*.
-- [ ] **Productos del catálogo**. Una vez listo el panel (Fase 3), Shirlene puede cargarlos desde *Admin → Productos*. Si prefieres pasármelos, usa la plantilla `productos.csv` de esta carpeta.
+- [ ] **Productos del catálogo**. Una vez listo el panel (Fase 3), Shirlene puede cargarlos desde *Admin → Productos*. Si prefieres pasármelos, usa la plantilla `productos.csv` de esta carpeta. filtrar por nombre "buscador".
 - [ ] **Revisar subcategorías**. Las de *Publicidad y Eventos* y *Promocionales* las propuse yo (`src/data/categories.js`): ¿se quedan así?
 - [ ] **Vista 360º** (opcional): 24–36 fotos del mismo trabajo girando a su alrededor, con la misma distancia y la misma luz. ¿La hacemos más adelante?
 - [ ] **Decidir el carrito**: el negocio trabaja con cotizaciones. ¿Quitamos *Carrito/Checkout* o se construye un pago en línea (y con qué pasarela: Mercado Pago, Stripe, Conekta…)?
@@ -55,3 +55,63 @@ Lo que necesito de ti (o de Shirlene) para terminar. Marca con `[x]` lo que ya e
 - [x] ~~Verificar en n8n que las acciones del panel las haga un admin~~ → resuelto en el workflow (nodo *Verificar admin*), no requiere configurar nada.
 - [ ] **Volver a publicar las reglas** (cambiaron en la Fase 3): `firebase deploy --only firestore:rules,storage`. Repetirlo cada vez que cambie `firestore.rules` o `storage.rules`.
 - [ ] Crear el usuario admin de Shirlene (documento `users/{uid}` con `role: "admin"`).
+
+ITERACION:
+
+la ia de whatsapp debe de iniciar y mantener una conversacion natural sin darle precios a los clientes las cotizaciones las realiza shirlene manualmente la ia le entrega un resumen de la conversacion que necesita el cliente. debe estar conectada al whatsapp business API , y en caso de no saber la respuesta debe de canalizar la conversacion con Shirlene.
+
+el chat debe ir completando un checklist como de nombre que necesita etc como una pasarela de venta para ir avanzando a ya ir con shirlene a la cotizacion
+
+
+¿Cómo funciona la integración con WhatsApp?
+Imagina que tienes una tienda en línea que no puede recibir pagos (es solo catálogo). Tus clientes te escriben por WhatsApp y tú les cotizas manualmente.
+
+Con este sistema:
+
+El chatbot de WhatsApp recibe el mensaje inicial.
+
+Tú configuras en n8n qué botones de respuesta mostrar (por ejemplo: “¿Qué necesitas?” → “1. Invitaciones”, “2. Banners”, “3. Playeras”, etc.).
+
+El cliente presiona botones o escribe; la IA entiende el contexto y sigue la conversación según el flujo que diseñaste.
+
+Cuando la IA recopila datos clave (nombre, tipo de trabajo, medidas, cantidad, etc.), genera un “resumen de pedido” y te lo envía a WhatsApp (o a Telegram/correo, según configures).
+
+A partir de ese resumen, ya puedes hacer tu cotización manual.
+
+En resumen: la IA no da precios; actúa como un asistente que “toma nota” del pedido y te lo entrega ordenado.
+
+### Automatización de la Cotización (Proforma)
+
+Actualmente, Shirlene realiza las cotizaciones de forma manual en un formato establecido de Excel (Proforma). El objetivo es **automatizar la generación de este documento**. 
+
+Una vez que la IA recopile el resumen del cliente, el sistema deberá ser capaz de vaciar esos datos (o permitirle a Shirlene llenarlos rápidamente) en su plantilla actual, la cual incluye los siguientes campos:
+- Fecha
+- Cliente / Atención
+- Trabajo
+- Materiales
+- Impresión
+- Acabado
+- Medida
+- Entrega
+- Tabla de costos (Cantidad, Precio Unitario, Subtotal, IVA, Total)
+
+*El sistema deberá tomar estos datos y generar la cotización (PDF) para enviársela al cliente, manteniendo el diseño e identidad visual de la empresa (logo, datos de contacto, etc).*
+
+**Flujo de trabajo propuesto:**
+1. **Recopilación:** La IA obtiene los detalles del trabajo (sin dar precios) y los guarda en el Panel Web.
+2. **Cotización:** Shirlene entra al Panel Web (o vía WhatsApp), revisa los detalles precargados, ingresa únicamente el precio unitario y aprueba.
+3. **Envío Automático:** El sistema genera el PDF y se lo envía al cliente por WhatsApp con un mensaje como: *"Aquí tienes tu cotización. Si tienes alguna duda o necesitas una personalización adicional, dime por aquí mismo."*
+4. **Modificaciones (Re-cotización):** Si el cliente pide un cambio (ej. "Mejor quiero 2 piezas" o "Cámbialo a material brillante"), la IA captura los nuevos requerimientos y actualiza el "Borrador". Shirlene recibe un aviso de que hay una actualización, ajusta el precio en el panel si es necesario, y con un clic se genera y envía la "Cotización V2" actualizada.
+
+### Ejemplo de cómo se vería la conversación:
+
+**Cliente:** Hola, quiero cotizar una lona.
+**IA:** ¡Hola! Claro que sí, con gusto te ayudo. ¿De qué medida necesitas tu lona?
+*(... la IA hace sus preguntas de checklist ...)*
+**IA:** Perfecto, ya tengo todo anotado (Lona vinílica, 2x1m, para exterior). En un momento te envío el documento con tu cotización.
+*(Shirlene entra al panel, ve el resumen de la lona, teclea el precio de $15,000 y da clic en generar)*
+**IA:** 📄 *[Documento PDF adjunto: Cotizacion_Juan.pdf]* Aquí tienes tu cotización lista. Si tienes alguna duda o necesitas una personalización adicional, dime por aquí mismo.
+**Cliente:** Muchas gracias. Oye, ¿y si en lugar de 1 lona fueran 3?
+**IA:** ¡Claro! Anoto que ahora requieres 3 piezas. En unos minutos te comparto la cotización actualizada con ese cambio.
+*(Shirlene recibe la alerta en su panel de que cambió la cantidad a 3, ajusta el costo y da clic de nuevo)*
+**IA:** 📄 *[Documento PDF adjunto: Cotizacion_Juan_V2.pdf]* ¡Listo! Aquí tienes tu cotización actualizada para las 3 lonas. ¿Te ayudo con algo más para proceder con tu pedido?
