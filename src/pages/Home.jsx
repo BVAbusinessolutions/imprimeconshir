@@ -7,16 +7,16 @@ import BeforeAfterSlider from '../components/media/BeforeAfterSlider';
 import VanGraphic from '../components/media/VanGraphic';
 import LogoMockupPreview from '../components/mockup/LogoMockupPreview';
 import { CATEGORIES } from '../data/categories';
-import { placeholderImage } from '../data/placeholderImages';
+import { EXAMPLE_IMAGES } from '../data/exampleImages';
 
 // Mosaico Fotobook: las imágenes de proyectos son las protagonistas.
-// Reemplaza `src` por fotos reales de trabajos cuando estén disponibles.
+// Reemplaza las fotos de ejemplo por trabajos reales cuando estén disponibles.
 const MOSAIC = [
-  { label: 'Rotulación vehicular', span: 'col-span-2 row-span-2', src: placeholderImage('mosaico-rotulacion', 1400, 1000) },
-  { label: 'Stands', span: '', src: placeholderImage('mosaico-stands', 800, 600) },
-  { label: 'Lonas', span: '', src: placeholderImage('mosaico-lonas', 800, 600) },
-  { label: 'Cajas', span: '', src: placeholderImage('mosaico-cajas', 800, 600) },
-  { label: 'Promocionales', span: '', src: placeholderImage('mosaico-promocionales', 800, 600) },
+  { label: 'Rotulación vehicular', span: 'col-span-2 row-span-2', image: EXAMPLE_IMAGES.rotulacionVehicular },
+  { label: 'Rótulos corpóreos', span: '', image: EXAMPLE_IMAGES.letreros },
+  { label: 'Señalización', span: '', image: EXAMPLE_IMAGES.senalizacionEventos },
+  { label: 'Papelería', span: '', image: EXAMPLE_IMAGES.plumas },
+  { label: 'Promocionales', span: '', image: EXAMPLE_IMAGES.tazas },
 ];
 
 const VanScene = ({ wrapped }) => (
@@ -73,7 +73,7 @@ const Home = () => (
       <Reveal delay={0.1} className="mt-12 grid auto-rows-[140px] grid-cols-2 gap-3 sm:auto-rows-[200px] md:grid-cols-4 md:gap-4">
         {MOSAIC.map((item, i) => (
           <div key={item.label} className={`group overflow-hidden rounded-2xl ${item.span}`}>
-            <ProjectImage src={item.src} label={item.label} showLabel tone={i} className="h-full w-full" />
+            <ProjectImage src={item.image.src} alt={item.image.alt} label={item.label} showLabel tone={i} className="h-full w-full" />
           </div>
         ))}
       </Reveal>

@@ -1,13 +1,13 @@
 import { Link } from 'react-router-dom';
 import ProjectImage from '../media/ProjectImage';
 import { formatCurrency } from '../../utils/helpers';
-import { placeholderImage } from '../../data/placeholderImages';
+import { fallbackImageFor } from '../../data/categories';
 
 const ProductCard = ({ product, subcategoryName, tone = 0 }) => (
   <Link to={`/producto/${product.id}`} className="group block">
     <div className="overflow-hidden rounded-2xl">
       <ProjectImage
-        src={product.images?.[0] ?? placeholderImage(product.id, 800, 1000)}
+        src={product.images?.[0] ?? fallbackImageFor(product)}
         alt={product.name}
         label={product.name}
         tone={tone}

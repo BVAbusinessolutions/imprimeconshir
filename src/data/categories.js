@@ -1,9 +1,9 @@
-import { placeholderImage } from './placeholderImages';
+import { EXAMPLE_BY_SLUG } from './exampleImages';
 
 /**
  * Categorías principales del catálogo (navegación superior).
  * `slug` es el valor que se guarda en `products.category` / `products.subcategory` en Firestore.
- * `cover` (categoría) e `image` (subcategoría) admiten una URL; si faltan se usa una imagen temporal.
+ * `cover` (categoría) e `image` (subcategoría) admiten una URL; si faltan se usa una foto de ejemplo (exampleImages.js).
  */
 const RAW_CATEGORIES = [
   {
@@ -58,11 +58,17 @@ const RAW_CATEGORIES = [
   },
 ];
 
-// Mientras no haya fotos reales, cada categoría y subcategoría usa una imagen temporal
+// Mientras no haya fotos reales, cada categoría y subcategoría usa una foto de ejemplo
 export const CATEGORIES = RAW_CATEGORIES.map((c) => ({
   ...c,
-  cover: c.cover ?? placeholderImage(c.slug),
-  subcategories: c.subcategories.map((s) => ({ ...s, image: s.image ?? placeholderImage(s.slug, 800, 1000) })),
+  cover: c.cover ?? EXAMPLE_BY_SLUG[c.slug]?.src ?? null,
+  subcategories: c.subcategories.map((s) => ({ ...s, image: s.image ?? EXAMPLE_BY_SLUG[s.slug]?.src ?? null })),
 }));
 
 export const getCategory = (slug) => CATEGORIES.find((c) => c.slug === slug) ?? null;
+
+/** Imagen de respaldo para un producto sin fotos: la de su subcategoría o categoría */
+export const fallbackImageFor = (product) => {
+  const category = getCategory(product?.category);
+  return category?.subcategories.find((s) => s.slug === product?.subcategory)?.image ?? category?.cover ?? null;
+};
