@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { PrivateRoute, AdminRoute } from './ProtectedRoute';
 import { lazy } from 'react';
 import Layout from '../components/layout/Layout';
+import AdminLayout from '../components/admin/AdminLayout';
 
 // Lazy imports para code-splitting (carga bajo demanda)
 const Home        = lazy(() => import('../pages/Home'));
@@ -19,6 +20,9 @@ const Designer    = lazy(() => import('../pages/Designer'));
 const AdminDashboard = lazy(() => import('../pages/admin/Dashboard'));
 const AdminProducts  = lazy(() => import('../pages/admin/Products'));
 const AdminOrders    = lazy(() => import('../pages/admin/Orders'));
+const AdminLogistics = lazy(() => import('../pages/admin/Logistics'));
+const AdminSuppliers = lazy(() => import('../pages/admin/Suppliers'));
+const AdminFinance   = lazy(() => import('../pages/admin/Finance'));
 const NotFound    = lazy(() => import('../pages/NotFound'));
 
 const AppRouter = () => (
@@ -47,9 +51,14 @@ const AppRouter = () => (
 
         {/* Privadas (solo admin) */}
         <Route element={<AdminRoute />}>
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/productos" element={<AdminProducts />} />
-          <Route path="/admin/pedidos" element={<AdminOrders />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="pedidos" element={<AdminOrders />} />
+            <Route path="productos" element={<AdminProducts />} />
+            <Route path="logistica" element={<AdminLogistics />} />
+            <Route path="proveedores" element={<AdminSuppliers />} />
+            <Route path="finanzas" element={<AdminFinance />} />
+          </Route>
         </Route>
 
         {/* 404 */}

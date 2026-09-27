@@ -73,6 +73,15 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ─── Panel administrativo (solo admin) ──────────────────────
+    match /suppliers/{supplierId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /deliveries/{deliveryId} {
+      allow read, write: if isAdmin();
+    }
+
     // Cualquier otra colección queda cerrada por defecto
     match /{document=**} {
       allow read, write: if false;

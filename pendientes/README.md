@@ -32,9 +32,16 @@ Lo que necesito de ti (o de Shirlene) para terminar. Marca con `[x]` lo que ya e
 - [ ] **Credencial de Firebase para n8n** (cuenta de servicio): *Firebase Console → Configuración del proyecto → Cuentas de servicio → Generar clave privada*, y cárgala en n8n como credencial **Google Firebase Cloud Firestore**. Con esto n8n guarda cotizaciones, citas y rutas. **No subas ese archivo JSON al repositorio.**
 - [ ] **Clave de Google Maps** (opcional, para geocodificar direcciones y optimizar rutas). Sin ella, las rutas se agrupan por zona y se abren en Google Maps con enlaces normales.
 
-## 3. Seguridad antes de publicar
+## 3. Panel administrativo (Fase 3)
+
+- [ ] **Zonas de reparto** reales de la ciudad (hoy: Centro, Norte, Sur, Oriente, Poniente), **dirección del taller** (punto de salida de las rutas) y **nombres de los mensajeros**. Se configuran en `src/data/logistics.js`.
+- [ ] **Datos históricos de ventas** (Excel o CSV por mes y por categoría) si quieren ver años anteriores en *Finanzas*; hoy el reporte muestra datos de ejemplo.
+- [ ] **Correo para alertas de proveedores** (inventario bajo y margen bajo): a qué dirección deben llegar.
+- [ ] **Margen mínimo aceptable** para las alertas (hoy 25 %).
+
+## 4. Seguridad antes de publicar
 
 - [ ] En el nodo *Webhook Principal* de n8n, cambiar *Allowed Origins (CORS)* de `*` al dominio real.
 - [ ] Habilitar en el servidor de n8n `NODE_FUNCTION_ALLOW_BUILTIN=crypto` para que el workflow pueda verificar el token de Firebase de los usuarios (te dejo el nodo listo cuando lo actives).
-- [ ] Confirmar que las reglas están publicadas: `firebase deploy --only firestore:rules,storage` (vuelve a correrlo cada vez que cambie `firestore.rules` o `storage.rules`).
+- [ ] **Volver a publicar las reglas** (cambiaron en la Fase 3): `firebase deploy --only firestore:rules,storage`. Repetirlo cada vez que cambie `firestore.rules` o `storage.rules`.
 - [ ] Crear el usuario admin de Shirlene (documento `users/{uid}` con `role: "admin"`).

@@ -32,3 +32,6 @@ export const slugify = (str) =>
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-');
+
+/** Fecha local en formato 'yyyy-MM-dd' (toISOString usaría UTC y cambiaría de día por la tarde en México) */
+export const localISODate = (date = new Date()) => format(date, 'yyyy-MM-dd');

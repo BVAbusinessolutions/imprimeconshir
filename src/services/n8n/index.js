@@ -4,7 +4,7 @@
  * En modo de prueba (sin VITE_N8N_WEBHOOK_URL) se usan las respuestas simuladas de ./mock.
  */
 import { IS_N8N_MOCK, postToN8n } from './client';
-import { mockAppointment, mockChat, mockQuote } from './mock';
+import { mockAppointment, mockChat, mockFinance, mockQuote, mockRoutes, mockSuppliers } from './mock';
 
 export { IS_N8N_MOCK, n8nErrorMessage } from './client';
 
@@ -27,3 +27,17 @@ export const requestQuote = (payload) =>
  */
 export const scheduleAppointment = (payload) =>
   IS_N8N_MOCK ? mockAppointment(payload) : postToN8n('cita', payload);
+
+// ─── Panel administrativo ─────────────────────────────────────
+
+/** Agrupa las entregas de un día por zona y arma las rutas de los mensajeros. */
+export const planDeliveryRoutes = (payload) =>
+  IS_N8N_MOCK ? mockRoutes(payload) : postToN8n('rutas', payload);
+
+/** Calcula márgenes de las listas de proveedores y dispara alertas de inventario bajo. */
+export const analyzeSupplierPrices = (payload) =>
+  IS_N8N_MOCK ? mockSuppliers(payload) : postToN8n('proveedores', payload);
+
+/** Reporte financiero histórico (ingresos por mes y categoría, KPIs, hallazgos estacionales). */
+export const fetchFinanceReport = (payload) =>
+  IS_N8N_MOCK ? mockFinance(payload) : postToN8n('finanzas', payload);

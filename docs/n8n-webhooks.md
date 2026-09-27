@@ -7,12 +7,17 @@ La web se comunica con **un solo webhook** `POST` (el nodo *Webhook Principal* d
 | `chat` | Mensaje del chat web → respuesta de la IA | `ChatWidget` |
 | `cotizar` | Pre-cotización inmediata desde el formulario | `/cotizar` |
 | `cita` | Agendar visita técnica y avisar a los ninjas | Tarjeta de cita (chat y `/cotizar`) |
+| `rutas` | Agrupar entregas del día por zona y armar rutas | Admin → Logística |
+| `proveedores` | Márgenes de listas de proveedores y alertas de inventario | Admin → Proveedores |
+| `finanzas` | Reporte histórico de ventas | Admin → Finanzas |
 
 Una `action` desconocida responde `400`.
 
 ## Cómo actualizar el workflow
 
-`n8n-workflow-base.json` es la fuente de verdad: los cambios a las automatizaciones se hacen ahí y se importan en n8n (*Workflows → Import from File*, sobre el workflow existente o como uno nuevo, desactivando el anterior). Tras importar, **activa** el workflow y revisa las credenciales de los nodos que las usen.
+La lógica de cada acción vive en `src/services/n8n/logic.js`, la misma que usa el modo de prueba de la web. `npm run n8n:build` la copia a los nodos *Code* y regenera `n8n-workflow-base.json`; **no edites esos nodos a mano en n8n**, porque se sobrescriben en la siguiente importación (agrega nodos nuevos después de ellos).
+
+Para aplicar cambios: importa `n8n-workflow-base.json` en n8n (*Workflows → Import from File*), desactiva la versión anterior y **activa** la nueva. Revisa las credenciales de los nodos que las usen.
 
 ## Seguridad
 
@@ -192,6 +197,106 @@ Responde en menos de ~30 s (la web espera 45 s y reintenta una vez ante errores 
 3. **Notificar a los ninjas** con dirección, horario, contacto y enlace a Google Maps.
 4. Enviar confirmación al cliente por correo.
 5. Responder al webhook.
+
+---
+
+## `action: "rutas"` (admin)
+
+### Petición
+
+```json
+{
+  "action": "rutas",
+  "date": "2026-09-28",
+  "origin": { "address": "Taller IMPRIME con SHIR", "lat": null, "lng": null },
+  "couriers": ["Mensajero 1", "Mensajero 2"],
+  "deliveries": [
+    { "id": "d1", "customer": "Ana", "address": "Av. Juárez 10", "zone": "Centro", "timeWindow": "10:00-12:00" }
+  ]
+}
+```
+
+### Respuesta
+
+```json
+{
+  "date": "2026-09-28",
+  "totalStops": 1,
+  "message": "1 entregas agrupadas en 1 ruta.",
+  "routes": [
+    {
+      "zone": "Centro",
+      "courier": "Mensajero 1",
+      "stops": [{ "order": 1, "id": "d1", "customer": "Ana", "address": "Av. Juárez 10", "timeWindow": "10:00-12:00" }],
+      "mapsLinks": ["https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=…"]
+    }
+  ]
+}
+```
+
+Agrupa por `zone`, asigna mensajeros en rotación y ordena las paradas por horario, o por cercanía si todas las paradas y el origen traen `lat`/`lng`. Cada enlace de Google Maps lleva hasta 10 paradas; si hay más, se divide en tramos. **Mejora futura:** con una clave de Google Maps, geocodificar las direcciones y optimizar el orden con la *Directions API*.
+
+---
+
+## `action: "proveedores"` (admin)
+
+### Petición
+
+```json
+{
+  "action": "proveedores",
+  "suppliers": [
+    {
+      "id": "s1",
+      "name": "Vinilos del Centro",
+      "email": "ventas@proveedor.com",
+      "items": [{ "id": "i1", "name": "Vinil blanco", "unit": "m", "cost": 90, "salePrice": 100, "stock": 2, "minStock": 5 }]
+    }
+  ]
+}
+```
+
+### Respuesta
+
+```json
+{
+  "items": [{ "supplierId": "s1", "itemId": "i1", "margin": 0.1, "profit": 10, "lowStock": true, "lowMargin": true }],
+  "alerts": [
+    { "type": "stock", "supplier": "Vinilos del Centro", "item": "Vinil blanco", "message": "Inventario bajo de Vinil blanco (Vinilos del Centro): quedan 2 m." },
+    { "type": "margin", "supplier": "Vinilos del Centro", "item": "Vinil blanco", "message": "Margen de 10% en Vinil blanco (Vinilos del Centro), por debajo del 25%." }
+  ],
+  "emailSent": false,
+  "message": "2 alerta(s) detectada(s)."
+}
+```
+
+`margin` = (venta − costo) / venta; se marca `lowMargin` por debajo del 25 %. **Pendiente:** después del nodo, si `alerts` no está vacío, enviar un correo (Gmail/SMTP) y devolver `emailSent: true`.
+
+---
+
+## `action: "finanzas"` (admin)
+
+### Petición
+
+```json
+{ "action": "finanzas", "year": 2026 }
+```
+
+### Respuesta
+
+```json
+{
+  "year": 2026,
+  "currency": "MXN",
+  "isSample": true,
+  "monthly": [{ "month": "2026-01", "label": "Ene", "revenue": 108560, "orders": 46 }],
+  "byCategory": [{ "slug": "gran-formato", "name": "Gran Formato", "revenue": 629930 }],
+  "kpis": { "revenue": 1431660, "orders": 611, "avgTicket": 2343, "monthlyAverage": 119305, "bestMonth": "Dic", "worstMonth": "Sep" },
+  "insights": ["May vendió 30% menos que el promedio mensual: conviene preparar una promoción desde el mes anterior."]
+}
+```
+
+Hoy devuelve **datos de ejemplo** (`isSample: true`) con la estacionalidad baja de mayo y septiembre. **Pendiente:** leer los pedidos reales de Firestore y **verificar que el token sea de un admin** antes de responder, porque este reporte tendrá datos sensibles.
 
 ---
 

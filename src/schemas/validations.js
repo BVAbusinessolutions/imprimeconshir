@@ -76,3 +76,44 @@ export const profileSchema = z.object({
   phone: phoneField.or(z.literal('')),
   address: z.string().max(200, { message: 'Máximo 200 caracteres' }).optional(),
 });
+
+/** Producto del catálogo (panel admin). El precio es "desde" y es opcional: el precio final se cotiza. */
+export const adminProductSchema = z.object({
+  name: z.string().min(3, { message: 'Nombre requerido' }),
+  description: z.string().min(10, { message: 'Descripción muy corta' }).max(1500, { message: 'Máximo 1500 caracteres' }),
+  category: z.string().min(1, { message: 'Elige una categoría' }),
+  subcategory: z.string().min(1, { message: 'Elige una subcategoría' }),
+  price: z.preprocess((v) => (v === '' || v == null ? undefined : v), z.coerce.number().nonnegative({ message: 'Precio inválido' }).optional()),
+  featured: z.boolean().optional(),
+});
+
+/** Entrega (logística) */
+export const deliverySchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Fecha inválida' }),
+  timeWindow: z.string().optional(),
+  customer: z.string().min(2, { message: 'Cliente requerido' }),
+  phone: z.string().optional(),
+  address: z.string().min(8, { message: 'Dirección requerida' }),
+  zone: z.string().min(1, { message: 'Elige una zona' }),
+  notes: z.string().max(300).optional(),
+});
+
+/** Proveedor (lista de precios de terceros) */
+export const supplierSchema = z.object({
+  name: z.string().min(2, { message: 'Nombre requerido' }),
+  contact: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().email({ message: 'Email no válido' }).or(z.literal('')).optional(),
+});
+
+const nonNegative = (message) => z.coerce.number({ message }).nonnegative({ message });
+
+/** Insumo o servicio de un proveedor */
+export const supplierItemSchema = z.object({
+  name: z.string().min(2, { message: 'Nombre requerido' }),
+  unit: z.string().min(1, { message: 'Unidad requerida' }),
+  cost: nonNegative('Costo inválido'),
+  salePrice: nonNegative('Precio inválido'),
+  stock: nonNegative('Existencia inválida'),
+  minStock: nonNegative('Mínimo inválido'),
+});
