@@ -1,0 +1,45 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isPrintFile() {
+      return isImage() || request.resource.contentType == 'application/pdf';
+    }
+
+    function underMB(mb) {
+      return request.resource.size < mb * 1024 * 1024;
+    }
+
+    // Imágenes del catálogo: públicas, solo el admin sube
+    match /products/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage() && underMB(5);
+    }
+
+    // Diseños y archivos para imprimir de cada cliente: carpeta privada por usuario
+    match /designs/{uid}/{fileName} {
+      allow read: if (isSignedIn() && request.auth.uid == uid) || isAdmin();
+      allow create: if isSignedIn() && request.auth.uid == uid && isPrintFile() && underMB(25);
+      allow delete: if (isSignedIn() && request.auth.uid == uid) || isAdmin();
+    }
+
+    // Todo lo demás cerrado
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

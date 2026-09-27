@@ -42,7 +42,7 @@ const AppRouter = () => (
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/perfil" element={<Profile />} />
           <Route path="/mis-pedidos" element={<Orders />} />
-          <Route path="/diseñador" element={<Designer />} />
+          <Route path="/disenador" element={<Designer />} />
         </Route>
 
         {/* Privadas (solo admin) */}

@@ -5,7 +5,7 @@ import { storage } from './config';
 /**
  * Sube un archivo al Firebase Storage con seguimiento de progreso.
  * @param {File} file - El archivo a subir.
- * @param {string} folder - Carpeta destino en Storage (ej: 'designs', 'products').
+ * @param {string} folder - Carpeta destino en Storage (ej: 'products' o `designs/${uid}` — ver storage.rules).
  * @param {function} onProgress - Callback con porcentaje de progreso (0-100).
  * @returns {Promise<string>} - La URL de descarga del archivo subido.
  */

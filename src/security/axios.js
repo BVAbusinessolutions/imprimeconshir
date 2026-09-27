@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { auth } from '../firebase/config';
 
-// Configuración base de axios
+// Configuración base de axios (para un backend propio, si se agrega más adelante)
 const secureApi = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
   timeout: 10000, // Timeout para evitar colgar la aplicación
@@ -10,39 +11,28 @@ const secureApi = axios.create({
   },
 });
 
-// Interceptor de peticiones
+// Interceptor de peticiones: adjunta el ID token de Firebase del usuario actual.
+// getIdToken() lo renueva automáticamente cuando está por expirar, así que no se guarda en localStorage.
 secureApi.interceptors.request.use(
-  (config) => {
-    // Aquí puedes añadir el token de autenticación desde el local storage, sessionStorage o cookies seguras
-    const token = localStorage.getItem('authToken'); 
-    if (token) {
+  async (config) => {
+    const user = auth.currentUser;
+    if (user) {
+      const token = await user.getIdToken();
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
-    // Podrías agregar un token CSRF si el backend lo proporciona
-    // const csrfToken = sessionStorage.getItem('csrfToken');
-    // if (csrfToken) {
-    //   config.headers['X-CSRF-Token'] = csrfToken;
-    // }
-    
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Interceptor de respuestas
 secureApi.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
     // Manejo global de errores de red o autenticación
     if (error.response) {
       if (error.response.status === 401) {
-        // Redirigir a login o limpiar tokens
-        console.warn('Acceso no autorizado. Redirigiendo o limpiando sesión...');
+        console.warn('Sesión no válida o expirada.');
       } else if (error.response.status === 403) {
         console.warn('Prohibido. No tienes permisos para esta acción.');
       }

@@ -1,0 +1,68 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Helpers ────────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // El rol se lee del perfil guardado en Firestore, nunca de lo que envía el cliente
+    function isAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Campos que el cliente no puede cambiar por su cuenta
+    function changesOnly(allowed) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowed);
+    }
+
+    // ─── Usuarios ───────────────────────────────────────────────
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+
+      // Al registrarse solo se puede crear el propio perfil y siempre como 'customer'
+      allow create: if isOwner(uid)
+        && request.resource.data.uid == uid
+        && request.resource.data.role == 'customer';
+
+      // El usuario puede editar sus datos, pero nunca su rol, uid ni fecha de alta
+      allow update: if (isOwner(uid) && changesOnly(['displayName', 'photoURL', 'phone', 'address', 'updatedAt']))
+        || isAdmin();
+
+      allow delete: if isAdmin();
+    }
+
+    // ─── Productos ──────────────────────────────────────────────
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ─── Pedidos ────────────────────────────────────────────────
+    match /orders/{orderId} {
+      allow read: if isAdmin()
+        || (isSignedIn() && resource.data.userId == request.auth.uid);
+
+      // Un cliente solo puede crear pedidos a su nombre y en estado 'pending'
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending';
+
+      // Solo el admin cambia estados; el cliente no puede modificar un pedido ya creado
+      allow update, delete: if isAdmin();
+    }
+
+    // Cualquier otra colección queda cerrada por defecto
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
