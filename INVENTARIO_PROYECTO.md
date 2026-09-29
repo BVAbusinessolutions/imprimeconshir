@@ -1,14 +1,14 @@
 # Inventario del proyecto
 
-Generado el 28 de septiembre de 2026. Las rutas están ordenadas alfabéticamente. Este inventario describe los archivos propios del proyecto; no enumera individualmente las dependencias instaladas ni los metadatos internos de Git.
+Actualizado el 28 de septiembre de 2026. Las rutas están ordenadas alfabéticamente. Este inventario describe los archivos propios del proyecto; no enumera individualmente las dependencias instaladas ni los metadatos internos de Git.
 
 ## Resumen
 
 | Elemento | Cantidad | Tamaño |
 | --- | ---: | ---: |
 | Directorios del proyecto | 38 | — |
-| Archivos del proyecto | 117 | 848.42 KB |
-| `.git` (metadatos) | 22 directorios / 30 archivos | 340.29 KB |
+| Archivos del proyecto | 120 | ~882 KB |
+| `.git` (metadatos) | 22 directorios / 30 archivos | ~380 KB |
 | `node_modules` (dependencias instaladas) | 5,261 directorios / 36,260 archivos | 418.91 MB |
 
 ## Estructura y archivos
@@ -33,11 +33,11 @@ imprimeconshir/
 │   │   └── .gitkeep                         0 B  Mantiene el directorio en Git
 │   ├── precios.csv                        514 B  Datos pendientes de precios
 │   ├── productos.csv                      280 B  Datos pendientes de productos
-│   ├── README.md                        9,942 B  Instrucciones de pendientes
+│   ├── README.md                       11,455 B  Instrucciones de pendientes y estado de implementaciones
 │   └── tono-shirlene.md                   506 B  Guía de tono
 ├── public/
 │   └── favicon.svg                        353 B  Ícono del sitio
-├── README.md                            3,820 B  Documentación principal
+├── README.md                            3,830 B  Documentación principal
 ├── scripts/
 │   ├── n8n/
 │   │   └── build-workflow.mjs          12,231 B  Generador del flujo n8n
@@ -50,7 +50,9 @@ imprimeconshir/
 │   │   │   └── AccountLayout.jsx        1,073 B  Diseño de cuenta
 │   │   ├── admin/
 │   │   │   ├── AdminLayout.jsx          2,352 B  Diseño administrativo
-│   │   │   └── AdminUI.jsx              3,877 B  Componentes administrativos
+│   │   │   ├── AdminUI.jsx              3,877 B  Componentes administrativos
+│   │   │   ├── Orders.jsx              16,118 B  Flujo manual de cotizaciones y proformas
+│   │   │   └── ProformaPDF.jsx          8,224 B  Documento de proforma imprimible/PDF
 │   │   ├── auth/
 │   │   │   ├── AuthCard.jsx             2,619 B  Tarjeta de autenticación
 │   │   │   └── authErrors.js              818 B  Errores de autenticación

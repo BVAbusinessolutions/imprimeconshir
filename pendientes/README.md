@@ -2,7 +2,17 @@
 
 Lo que necesito de ti (o de Shirlene) para terminar. Marca con `[x]` lo que ya entregues y deja los archivos en esta misma carpeta (`pendientes/`) o en la ruta que indica cada punto.
 
-Última actualización: 2026-09-26.
+Última actualización: 2026-09-28.
+
+---
+
+## Implementaciones realizadas (2026-09-28)
+
+- [x] **Panel responsive**: navegación, formularios, tablas de contenido y vistas administrativas se adaptan a móviles y tablets.
+- [x] **Cotización manual en el panel**: se agregó el flujo de pedidos por estado (Borrador, Cotizado y Aprobado), con captura exclusiva de precios unitarios y cálculo automático de subtotal, IVA (13 %) y total.
+- [x] **Proforma imprimible**: el panel genera una proforma con identidad IMPRIME con SHIR, número, datos del cliente, detalle del trabajo, condiciones de anticipo y botón para guardar como PDF desde el navegador.
+- [x] **Persistencia de proformas**: al guardar, el pedido se actualiza directamente en Firestore como `quoted` y conserva versión, partidas, totales y número de proforma. No depende de n8n.
+- [x] **Reglas para administración**: Firestore ya permite que los administradores actualicen pedidos y proformas. Falta crear/asignar el primer usuario administrador (ver sección 5).
 
 ---
 
@@ -34,6 +44,8 @@ Lo que necesito de ti (o de Shirlene) para terminar. Marca con `[x]` lo que ya e
 
 ## 3. Panel administrativo (Fase 3)
 
+- [x] **Cotizaciones y proformas manuales**: disponible en *Admin → Cotizaciones y proformas*. Shirlene ve el resumen del pedido, captura precios unitarios, guarda la cotización e imprime/guarda la proforma en PDF.
+- [x] **Estados de proforma**: disponibles Borrador, Cotizado y Aprobado. Una edición posterior incrementa la versión de la proforma.
 - [ ] En *Admin → Configuración → Operación*: **zonas de reparto** reales, **dirección del taller** (y coordenadas si las tienes), **mensajeros** y **técnicos (ninjas)** con su teléfono y correo.
 - [ ] **Datos históricos de ventas** (Excel o CSV por mes y por categoría) si quieren ver años anteriores en *Finanzas*; hoy el reporte muestra datos de ejemplo.
 - [ ] En la misma pantalla: **correo para alertas** (inventario bajo y margen bajo) y **margen mínimo** aceptable (hoy 25 %).
@@ -54,7 +66,7 @@ Lo que necesito de ti (o de Shirlene) para terminar. Marca con `[x]` lo que ya e
 - [ ] En el nodo *Webhook Principal* de n8n, cambiar *Allowed Origins (CORS)* de `*` al dominio real.
 - [x] ~~Verificar en n8n que las acciones del panel las haga un admin~~ → resuelto en el workflow (nodo *Verificar admin*), no requiere configurar nada.
 - [ ] **Volver a publicar las reglas** (cambiaron en la Fase 3): `firebase deploy --only firestore:rules,storage`. Repetirlo cada vez que cambie `firestore.rules` o `storage.rules`.
-- [ ] Crear el usuario admin de Shirlene (documento `users/{uid}` con `role: "admin"`).
+- [ ] **Crear el usuario administrador de Shirlene**. No hay usuario ni contraseña predeterminados en el repositorio. Primero registra/inicia sesión con la cuenta de Shirlene; luego, en Firebase Console → Firestore → `users/{uid}`, cambia el campo `role` a `admin`. Cierra sesión y vuelve a entrar para abrir `/admin`.
 
 ITERACION:
 

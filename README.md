@@ -1,125 +1,98 @@
-# Imprime con Shir 🖨️
+# IMPRIME con SHIR
 
-Plataforma web para **Visión Integral Gráfica** — catálogo de productos, cotizador automático vía WhatsApp, panel administrativo y generación de proformas en PDF.
+Plataforma web para **Visión Integral Gráfica**: catálogo de productos, atención de solicitudes, panel operativo y creación manual de proformas profesionales.
 
----
-
-## 🗂️ Descripción del proyecto
-
-Aplicación web full-stack construida con **React + Vite** y desplegada en **Firebase Hosting**. Permite a los clientes explorar el catálogo de impresión, solicitar cotizaciones por WhatsApp (atendidas por una IA entrenada con el tono de Shirlene) y recibir su proforma en PDF de forma automática.
-
-El panel administrativo permite a Shirlene gestionar cotizaciones, citas técnicas, inventario, proveedores, logística y finanzas, todo desde el navegador.
-
----
-
-## 🚀 Stack tecnológico
+## Stack
 
 | Capa | Tecnología |
-|---|---|
-| Frontend | React 19, React Router, TailwindCSS v4 |
-| Estado / Datos | TanStack Query, Zustand |
-| Backend / BD | Firebase Firestore, Firebase Auth, Firebase Storage |
-| Automatizaciones | n8n (WhatsApp Business API, IA, notificaciones) |
+| --- | --- |
+| Frontend | React 19, React Router y Vite |
+| Estilos | Tailwind CSS v4 |
+| Estado | TanStack Query y Zustand |
+| Datos | Firebase Authentication, Firestore y Storage |
+| Automatizaciones opcionales | n8n para WhatsApp, IA y notificaciones |
 | Hosting | Firebase Hosting |
-| CI/CD | GitHub → Firebase (manual deploy) |
 
----
+## Flujo de cotización y proforma
 
-## 📁 Estructura del proyecto
+El flujo administrativo funciona directamente con Firestore, sin requerir n8n:
 
-```
+1. Un pedido nuevo aparece como **Borrador** en `Admin → Cotizaciones y proformas`.
+2. Shirlene abre **Asignar precio / Proforma** y captura únicamente el precio unitario de cada partida.
+3. El sistema calcula subtotal, IVA del 13 % y total en colones costarricenses.
+4. Al guardar, el pedido pasa a **Cotizado** y conserva su número, versión y datos de proforma en Firestore.
+5. **Ver proforma** muestra un documento A4 con la identidad de IMPRIME con SHIR; desde allí se puede usar **Imprimir / Guardar como PDF**.
+6. Cuando el cliente acepta, se marca como **Aprobado**.
+
+## Acceso al panel administrador
+
+No se incluyen usuarios ni contraseñas en el repositorio. Para crear el primer acceso administrativo:
+
+1. Registra o inicia sesión con la cuenta de Shirlene en `/registro` o `/login`.
+2. En Firebase Console → Firestore Database → colección `users`, abre el documento cuyo ID sea el UID de esa cuenta.
+3. Cambia el campo `role` a `admin`.
+4. Cierra sesión y vuelve a entrar. La cuenta podrá abrir `/admin`.
+
+Las reglas de Firestore impiden que un cliente se asigne ese rol desde la aplicación.
+
+## Estructura del proyecto
+
+```text
 src/
-├── components/       # Componentes reutilizables (UI, admin)
-├── context/          # AuthContext (sesión del usuario)
-├── firebase/         # Configuración de Firebase y servicios de auth/storage
-├── pages/            # Páginas públicas y del panel admin
-│   ├── admin/        # Dashboard, Pedidos, Citas, Logística, Inventario…
-│   └── auth/         # Login, Registro
-├── services/         # Servicios de Firestore (adminService, contentService…)
-├── data/             # Datos estáticos (categorías, imágenes de ejemplo, legal)
-└── utils/            # Helpers
+├── components/
+│   ├── admin/
+│   │   ├── AdminLayout.jsx       # Navegación del panel
+│   │   ├── AdminUI.jsx           # Componentes comunes del panel
+│   │   ├── Orders.jsx            # Gestión de pedidos, precios y estados
+│   │   └── ProformaPDF.jsx       # Documento imprimible / PDF
+│   ├── auth/                     # Acceso y manejo de errores de autenticación
+│   ├── billing/                  # Facturación y consentimiento
+│   ├── chat/                     # Atención por chat
+│   ├── layout/                   # Navbar, footer y layout global
+│   ├── media/ y mockup/          # Imágenes y previsualizadores
+│   └── ui/                       # Controles reutilizables
+├── context/                      # Sesión de usuario
+├── data/                         # Datos estáticos y valores predeterminados
+├── firebase/                     # Configuración y servicios de Firebase
+├── hooks/                        # Hooks de productos y ajustes
+├── pages/
+│   ├── admin/                    # Rutas del panel (Orders reexporta el componente admin)
+│   ├── auth/                     # Login y registro
+│   ├── legal/                    # Privacidad y términos
+│   └── user/                     # Perfil y pedidos del cliente
+├── router/                       # Rutas y protección por rol
+├── services/                     # Acceso a Firestore y servicios opcionales n8n
+├── store/                        # Estado local
+└── utils/                        # Formateo y utilidades
 
-pendientes/           # Checklist de pendientes para el cliente
-scripts/              # Scripts de build (SEO, n8n workflow)
-firestore.rules       # Reglas de seguridad de Firestore
-storage.rules         # Reglas de seguridad de Storage
+pendientes/                       # Checklist y materiales por entregar
+scripts/                           # Generación de SEO y workflow n8n
+firestore.rules                    # Seguridad de Firestore
+storage.rules                      # Seguridad de Firebase Storage
+INVENTARIO_PROYECTO.md             # Inventario actualizado de archivos
 ```
 
----
-
-## ⚙️ Cómo correr el proyecto localmente
-
-### 1. Clonar el repositorio
-
-```bash
-git clone -b setup-base https://github.com/BVAbusinessolutions/imprimeconshir.git
-cd imprimeconshir
-```
-
-### 2. Instalar dependencias
+## Desarrollo local
 
 ```bash
 npm install
-```
-
-### 3. Configurar variables de entorno
-
-Copia el archivo de ejemplo y rellena tus credenciales de Firebase:
-
-```bash
-cp .env.example .env.local
-```
-
-Edita `.env.local` con los valores de tu proyecto de Firebase Console.
-
-### 4. Correr el servidor de desarrollo
-
-```bash
+Copy-Item .env.example .env.local  # PowerShell
 npm run dev
 ```
 
----
+Completa las variables de Firebase en `.env.local`. No subas claves, cuentas de servicio ni contraseñas al repositorio.
 
-## 🛡️ Reglas de Firestore
-
-Para publicar las reglas de seguridad en Firebase:
+## Validación y despliegue
 
 ```bash
+npm run lint
+npm run build
 npm run deploy:rules
-# equivale a: firebase deploy --only firestore:rules,storage
-```
-
-> **Nota:** Firebase Storage debe estar activado en la consola para que el comando de storage funcione.
-
----
-
-## 🚢 Despliegue a producción
-
-```bash
 npm run deploy
-# equivale a: npm run build && firebase deploy --only hosting
 ```
 
----
+`deploy:rules` publica las reglas de Firestore y Storage. `deploy` genera el build y publica Firebase Hosting.
 
-## 🤖 Automatizaciones (n8n)
+## Pendientes
 
-El archivo `n8n-workflow-base.json` contiene el workflow principal que conecta:
-- **WhatsApp Business API** → Atención al cliente con IA
-- **Firebase Firestore** → Guardado de cotizaciones y citas
-- **Notificaciones** → Avisos a Shirlene y a los técnicos
-
-Para importarlo: en n8n ve a *Workflows → Import from File* y selecciona `n8n-workflow-base.json`.
-
----
-
-## 📋 Pendientes
-
-Revisa [`pendientes/README.md`](./pendientes/README.md) para ver la lista completa de tareas que requieren acción del cliente (fotos, precios, credenciales, etc.).
-
----
-
-## 👥 Colaboradores
-
-- **Shirlene** — Operaciones y contenido
-- **BVA Business Solutions** — Desarrollo y automatizaciones
+Consulta [pendientes/README.md](./pendientes/README.md) para conocer los datos, contenido, credenciales externas y acciones que aún debe proporcionar el negocio.
