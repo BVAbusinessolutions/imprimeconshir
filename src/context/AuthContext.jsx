@@ -1,9 +1,10 @@
+/* oxlint-disable react/only-export-components */
 import { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -61,3 +62,5 @@ export const useAuth = () => {
   if (!context) throw new Error('useAuth debe usarse dentro de <AuthProvider>');
   return context;
 };
+
+export default AuthProvider;

@@ -74,7 +74,6 @@ la ia de whatsapp debe de iniciar y mantener una conversacion natural sin darle 
 
 el chat debe ir completando un checklist como de nombre que necesita etc como una pasarela de venta para ir avanzando a ya ir con shirlene a la cotizacion
 
-
 ¿Cómo funciona la integración con WhatsApp?
 Imagina que tienes una tienda en línea que no puede recibir pagos (es solo catálogo). Tus clientes te escriben por WhatsApp y tú les cotizas manualmente.
 
@@ -94,9 +93,10 @@ En resumen: la IA no da precios; actúa como un asistente que “toma nota” de
 
 ### Automatización de la Cotización (Proforma)
 
-Actualmente, Shirlene realiza las cotizaciones de forma manual en un formato establecido de Excel (Proforma). El objetivo es **automatizar la generación de este documento**. 
+Actualmente, Shirlene realiza las cotizaciones de forma manual en un formato establecido de Excel (Proforma). El objetivo es **automatizar la generación de este documento**.
 
 Una vez que la IA recopile el resumen del cliente, el sistema deberá ser capaz de vaciar esos datos (o permitirle a Shirlene llenarlos rápidamente) en su plantilla actual, la cual incluye los siguientes campos:
+
 - Fecha
 - Cliente / Atención
 - Trabajo
@@ -110,12 +110,13 @@ Una vez que la IA recopile el resumen del cliente, el sistema deberá ser capaz 
 *El sistema deberá tomar estos datos y generar la cotización (PDF) para enviársela al cliente, manteniendo el diseño e identidad visual de la empresa (logo, datos de contacto, etc).*
 
 **Flujo de trabajo propuesto:**
+
 1. **Recopilación:** La IA obtiene los detalles del trabajo (sin dar precios) y los guarda en el Panel Web.
 2. **Cotización:** Shirlene entra al Panel Web (o vía WhatsApp), revisa los detalles precargados, ingresa únicamente el precio unitario y aprueba.
 3. **Envío Automático:** El sistema genera el PDF y se lo envía al cliente por WhatsApp con un mensaje como: *"Aquí tienes tu cotización. Si tienes alguna duda o necesitas una personalización adicional, dime por aquí mismo."*
 4. **Modificaciones (Re-cotización):** Si el cliente pide un cambio (ej. "Mejor quiero 2 piezas" o "Cámbialo a material brillante"), la IA captura los nuevos requerimientos y actualiza el "Borrador". Shirlene recibe un aviso de que hay una actualización, ajusta el precio en el panel si es necesario, y con un clic se genera y envía la "Cotización V2" actualizada.
 
-### Ejemplo de cómo se vería la conversación:
+### Ejemplo de cómo se vería la conversación
 
 **Cliente:** Hola, quiero cotizar una lona.
 **IA:** ¡Hola! Claro que sí, con gusto te ayudo. ¿De qué medida necesitas tu lona?
