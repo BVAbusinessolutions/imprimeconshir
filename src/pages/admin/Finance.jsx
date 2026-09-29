@@ -139,7 +139,7 @@ const CategoryChart = ({ categories }) => {
         {categories.map((c) => (
           <li key={c.slug} className="flex items-center gap-3">
             <span aria-hidden="true" className="h-3 w-3 shrink-0 rounded-sm" style={{ backgroundColor: CATEGORY_COLORS[c.slug] }} />
-            <span className="flex-1">{c.name}</span>
+            <span className="min-w-0 flex-1 truncate">{c.name}</span>
             <span className="font-semibold tabular-nums">{Math.round((c.revenue / total) * 100)}%</span>
             <span className="w-24 text-right text-muted tabular-nums">{compactMoney(c.revenue)}</span>
           </li>
@@ -151,7 +151,8 @@ const CategoryChart = ({ categories }) => {
 
 const DataTable = ({ report }) => (
   <div className="grid gap-6 lg:grid-cols-2">
-    <table className="w-full text-left text-sm">
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[320px] text-left text-sm">
       <caption className="mb-2 text-left font-semibold">Ingresos por mes</caption>
       <thead className="text-xs text-muted">
         <tr>
@@ -169,8 +170,10 @@ const DataTable = ({ report }) => (
           </tr>
         ))}
       </tbody>
-    </table>
-    <table className="w-full self-start text-left text-sm">
+      </table>
+    </div>
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[260px] self-start text-left text-sm">
       <caption className="mb-2 text-left font-semibold">Ingresos por categoría</caption>
       <tbody>
         {report.byCategory.map((c) => (
@@ -180,7 +183,8 @@ const DataTable = ({ report }) => (
           </tr>
         ))}
       </tbody>
-    </table>
+      </table>
+    </div>
   </div>
 );
 

@@ -293,7 +293,8 @@ const RealVsPlan = ({ rows }) => {
       {compared.length === 0 ? (
         <p className="mt-4 text-sm text-muted">Registra gastos reales de los meses del plan para ver si vas por buen camino.</p>
       ) : (
-        <table className="mt-4 w-full text-sm">
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full min-w-[520px] text-sm">
           <thead className="text-left text-xs text-muted">
             <tr>
               <th scope="col" className="py-1.5 font-medium">Mes</th>
@@ -318,7 +319,8 @@ const RealVsPlan = ({ rows }) => {
               );
             })}
           </tbody>
-        </table>
+          </table>
+        </div>
       )}
 
       {expenses.data?.length > 0 && (
